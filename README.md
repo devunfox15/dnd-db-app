@@ -9,7 +9,7 @@ This project is now migrated to a **React + TypeScript + Vite** single-page appl
   - `src/pages`
   - `src/components`
   - `src/App.tsx`
-  - `src/app.js` (bridge/metadata file kept per your request)
+  - `src/app-shell.js` (bridge/metadata file kept per your request)
 - Preserved key features:
   - floating multi-dice roller with center dice arena animation
   - linked notes with `[[Wiki Links]]`
@@ -22,7 +22,7 @@ This project is now migrated to a **React + TypeScript + Vite** single-page appl
 - `index.html` – Vite entry HTML
 - `src/main.tsx` – React bootstrap
 - `src/App.tsx` – app root component
-- `src/app.js` – requested app.js bridge/metadata
+- `src/app-shell.js` – requested app.js bridge/metadata
 - `src/pages/DashboardPage.tsx` – page-level composition/state
 - `src/components/*` – UI components
 - `src/lib/dice.ts` – dice helpers/constants
