@@ -5,9 +5,11 @@ import NotesPanel from '../components/NotesPanel';
 import ApiLookupPanel from '../components/ApiLookupPanel';
 import { DiceArena, DiceFab, buildRolls } from '../components/DiceWidgets';
 import { DIE_ORDER, type DieSides } from '../lib/dice';
+import { askDungeonMasterAssistant, type DmTurn } from '../lib/dmAssistant';
 
 type Note = { id: string; title: string; body: string };
 type ApiItem = { name: string; url: string };
+type ChatEntry = { id: string; role: 'You' | 'AI'; msg: string; bookmarked?: boolean };
 
 const API_BASE = 'https://www.dnd5eapi.co/api';
 const emptyCounts: Record<DieSides, number> = { 20: 0, 12: 0, 100: 0, 10: 0, 8: 0, 6: 0, 4: 0 };
@@ -26,11 +28,16 @@ export default function DashboardPage() {
   const [detail, setDetail] = useState('Ready.');
 
   const [chatInput, setChatInput] = useState('');
-  const [chatLog, setChatLog] = useState<Array<{ role: string; msg: string }>>([
-    { role: 'AI', msg: 'Welcome! Use the bottom-left d20 to build a roll and animate in the Dice Arena.' },
+  const [chatLog, setChatLog] = useState<ChatEntry[]>([
+    {
+      id: crypto.randomUUID(),
+      role: 'AI',
+      msg: 'Dungeon Master assistant ready. Ask for an encounter, NPC, or an area description.',
+      bookmarked: false,
+    },
   ]);
-  const [npcSeed, setNpcSeed] = useState('');
-  const [npcOutput, setNpcOutput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatWarning, setChatWarning] = useState('');
 
   const [diceCounts, setDiceCounts] = useState<Record<DieSides, number>>(emptyCounts);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,22 +80,92 @@ export default function DashboardPage() {
     setDetail(JSON.stringify(payload, null, 2));
   };
 
-  const onSendChat = () => {
-    if (!chatInput.trim()) return;
-    const msg = chatInput.trim();
-    setChatLog((prev) => [...prev, { role: 'You', msg }, { role: 'AI', msg: `Idea: link this to [[${msg.split(' ')[0] || 'Quest'}]].` }]);
-    setChatInput('');
+  const buildNoteTitleFromText = (text: string, prefix: string): string => {
+    const firstLine = text.split('\n').find((line) => line.trim()) || '';
+    const cleaned = firstLine.replace(/^#+\s*/, '').replace(/^[-*]\s*/, '').trim();
+    if (!cleaned) return prefix;
+    return cleaned.length > 45 ? `${cleaned.slice(0, 45).trim()}...` : cleaned;
   };
 
-  const onNpcGenerate = () => {
-    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
-    const npc = {
-      name: `${pick(['Ael', 'Brom', 'Cira'])}${pick(['wyn', 'ric', 'dan'])}`,
-      role: pick(['Innkeeper', 'Spy', 'Priest']),
-      quirk: pick(['never blinks', 'collects teeth', 'hums old war songs']),
-      hook: npcSeed || 'No seed provided',
+  const appendNote = (title: string, body: string) => {
+    const id = crypto.randomUUID();
+    setNotes((prev) => [...prev, { id, title, body }]);
+    setCurrentNoteId(id);
+  };
+
+  const onSaveAiToNotes = (messageId: string) => {
+    const entry = chatLog.find((item) => item.id === messageId && item.role === 'AI');
+    if (!entry) return;
+    const title = buildNoteTitleFromText(entry.msg, `AI Note ${notes.length + 1}`);
+    appendNote(title, entry.msg);
+  };
+
+  const onBookmarkAiToNotes = (messageId: string) => {
+    const entry = chatLog.find((item) => item.id === messageId && item.role === 'AI');
+    if (!entry) return;
+
+    const existingBookmarksNote = notes.find((n) => n.title === 'AI Bookmarks');
+    const timestamp = new Date().toLocaleString();
+    const snippet = `\n\n### ${buildNoteTitleFromText(entry.msg, 'AI Output')} (${timestamp})\n${entry.msg}`;
+
+    if (existingBookmarksNote) {
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === existingBookmarksNote.id
+            ? { ...n, body: `${n.body}${snippet}` }
+            : n,
+        ),
+      );
+      setCurrentNoteId(existingBookmarksNote.id);
+    } else {
+      appendNote('AI Bookmarks', snippet.trimStart());
+    }
+
+    setChatLog((prev) => prev.map((item) => (item.id === messageId ? { ...item, bookmarked: true } : item)));
+  };
+
+  const onSendChat = async (overridePrompt?: string) => {
+    const userPrompt = (overridePrompt ?? chatInput).trim();
+    if (!userPrompt || chatLoading) return;
+
+    setChatWarning('');
+    setChatLoading(true);
+    setChatInput('');
+
+    const nextUserEntry: ChatEntry = { id: crypto.randomUUID(), role: 'You', msg: userPrompt };
+    setChatLog((prev) => [...prev, nextUserEntry]);
+
+    try {
+      const history: DmTurn[] = chatLog
+        .slice(-10)
+        .map((entry) => ({
+          role: entry.role === 'You' ? 'user' : 'assistant',
+          content: entry.msg,
+        }));
+      const result = await askDungeonMasterAssistant(userPrompt, history);
+      const aiEntry: ChatEntry = {
+        id: crypto.randomUUID(),
+        role: 'AI',
+        msg: result.reply,
+        bookmarked: false,
+      };
+      setChatLog((prev) => [...prev, aiEntry]);
+      setChatWarning(result.warning);
+    } catch (error) {
+      console.error('Unexpected chat error.', error);
+      setChatWarning('Could not get assistant output.');
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const onQuickPrompt = (kind: 'encounter' | 'npc' | 'area') => {
+    const promptMap: Record<typeof kind, string> = {
+      encounter: 'Generate a balanced combat encounter for a level 5 party of 4 in a ruined cathedral.',
+      npc: 'Generate an NPC ally for a political intrigue campaign in a large trade city.',
+      area: 'Describe a creepy swamp shrine area with sensory details and one hidden clue.',
     };
-    setNpcOutput(JSON.stringify(npc, null, 2));
+    void onSendChat(promptMap[kind]);
   };
 
   const onNewNote = () => {
@@ -185,10 +262,11 @@ export default function DashboardPage() {
         setChatInput={setChatInput}
         chatLog={chatLog}
         onSendChat={onSendChat}
-        npcSeed={npcSeed}
-        setNpcSeed={setNpcSeed}
-        onNpcGenerate={onNpcGenerate}
-        npcOutput={npcOutput}
+        chatLoading={chatLoading}
+        chatWarning={chatWarning}
+        onQuickPrompt={onQuickPrompt}
+        onSaveAiToNotes={onSaveAiToNotes}
+        onBookmarkAiToNotes={onBookmarkAiToNotes}
       />
 
       <DiceFab

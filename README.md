@@ -45,6 +45,33 @@ npm run build
 npm run preview
 ```
 
+## AI NPC Generation
+
+The NPC generator in the right sidebar now supports AI-enhanced output and always returns:
+- name
+- brief description
+- alignment
+- job
+- D&D 5e roll stats (STR/DEX/CON/INT/WIS/CHA with score + modifier)
+
+### Environment variables
+
+Add these to a local `.env` file (or your shell):
+
+```bash
+VITE_OPENAI_API_KEY=your_openai_api_key
+VITE_OPENAI_MODEL=gpt-4o-mini
+```
+
+- `VITE_OPENAI_API_KEY` enables AI generation.
+- `VITE_OPENAI_MODEL` is optional and defaults to `gpt-4o-mini`.
+
+If no API key is configured, or if the AI request fails, the app automatically uses a deterministic local fallback generator.
+
+### Security note
+
+This project uses a browser-side API key for development speed. Do not use long-lived production secrets in client-side code; use a server-side proxy for production deployments.
+
 ## If your environment blocks npm registry access
 
 1. Configure registry variables and token.
