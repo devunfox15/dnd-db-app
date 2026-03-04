@@ -47,8 +47,8 @@ function sourcePath(pin: StoryPin): string {
   }
 }
 
-export default function FeaturePage() {
-  const campaignId = useActiveCampaignId()
+export default function FeaturePage({ campaignIdOverride }: { campaignIdOverride?: string } = {}) {
+  const campaignId = campaignIdOverride ?? useActiveCampaignId()
   const [search, setSearch] = useState('')
   const pins = useStoryPins(search, campaignId)
   const [selectedId, setSelectedId] = useState<string | null>(pins[0]?.id ?? null)

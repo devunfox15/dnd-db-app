@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 
 import type { ChatMessage, SendCampaignChatInput, SendCampaignChatResult } from '@/features/campaign-chat/types'
 
-const OLLAMA_MODEL = 'qwen3-coder-next'
+const DEFAULT_OLLAMA_MODEL = 'qwen3-coder-next'
 const REQUEST_TIMEOUT_MS = 30_000
 
 interface OllamaChatResponse {
@@ -37,7 +37,7 @@ export function mapChatError(error: unknown): string {
     }
 
     if (/fetch failed|ECONNREFUSED|ENOTFOUND/i.test(error.message)) {
-      return 'Could not connect to local Ollama. Confirm it is running and reachable from LLAMA_API_KEY.'
+      return 'Could not connect to local Ollama. Confirm it is running and reachable from OLLAMA_BASE_URL.'
     }
 
     return error.message
@@ -52,13 +52,15 @@ export async function requestOllamaChat(
     fetchImpl?: typeof fetch
     timeoutMs?: number
     baseUrl?: string
+    model?: string
   }
 ): Promise<SendCampaignChatResult> {
-  // Historical env name retained by request. It stores the local Ollama base URL.
-  const baseUrl = options?.baseUrl ?? process.env.LLAMA_API_KEY
+  // `LLAMA_API_KEY` is kept as a fallback for older local setups.
+  const baseUrl = options?.baseUrl ?? process.env.OLLAMA_BASE_URL ?? process.env.LLAMA_API_KEY
+  const model = options?.model ?? process.env.OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL
 
   if (!baseUrl) {
-    throw new Error('LLAMA_API_KEY is not set. Expected a local Ollama base URL like http://127.0.0.1:11434')
+    throw new Error('OLLAMA_BASE_URL is not set. Expected a local Ollama base URL like http://127.0.0.1:11434')
   }
 
   const controller = new AbortController()
@@ -72,7 +74,7 @@ export async function requestOllamaChat(
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: OLLAMA_MODEL,
+        model,
         stream: false,
         messages: toOllamaMessages(input.systemPrompt, input.messages),
       }),

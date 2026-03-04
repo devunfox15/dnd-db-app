@@ -44,9 +44,9 @@ function reorder(events: TimelineEvent[], id: string, direction: -1 | 1): Timeli
   return next.map((event, itemIndex) => ({ ...event, orderIndex: itemIndex + 1 }))
 }
 
-export default function FeaturePage() {
+export default function FeaturePage({ campaignIdOverride }: { campaignIdOverride?: string } = {}) {
   const state = useAppState()
-  const campaignId = useActiveCampaignId()
+  const campaignId = campaignIdOverride ?? useActiveCampaignId()
   const [search, setSearch] = useState('')
   const timelineEvents = useTimelineEvents(search, campaignId)
   const [selectedId, setSelectedId] = useState<string | null>(timelineEvents[0]?.id ?? null)

@@ -24,11 +24,16 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 
 export function DmAppLayout({
   pageTitle,
+  breadcrumbItems,
   children,
 }: {
   pageTitle: string
+  breadcrumbItems?: string[]
   children: React.ReactNode
 }) {
+  const items = breadcrumbItems && breadcrumbItems.length > 0 ? breadcrumbItems : [pageTitle]
+  const lastIndex = items.length - 1
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -39,10 +44,14 @@ export function DmAppLayout({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>Campaign Dashboard</BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
-              </BreadcrumbItem>
+              {items.map((item, index) => (
+                <div key={`${item}-${index}`} className="contents">
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    {index === lastIndex ? <BreadcrumbPage>{item}</BreadcrumbPage> : item}
+                  </BreadcrumbItem>
+                </div>
+              ))}
             </BreadcrumbList>
           </Breadcrumb>
           <div className="ml-auto">

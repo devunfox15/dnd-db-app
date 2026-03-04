@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { DmAppLayout } from '@/components/layout/dm-app-layout'
 import FeaturePage from '@/features/story-pins/page'
 
 export const Route = createFileRoute('/campaigns/story-pins')({
@@ -8,9 +7,5 @@ export const Route = createFileRoute('/campaigns/story-pins')({
 })
 
 function RouteComponent() {
-  return (
-    <DmAppLayout pageTitle="Story Pins">
-      <FeaturePage />
-    </DmAppLayout>
-  )
+  return <FeaturePage />
 }

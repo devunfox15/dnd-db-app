@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RpgRulesRouteImport } from './routes/rpg-rules'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CampaignsIndexRouteImport } from './routes/campaigns.index'
 import { Route as CampaignsStoryPinsRouteImport } from './routes/campaigns.story-pins'
 import { Route as CampaignsNpcCharactersRouteImport } from './routes/campaigns.npc-characters'
 import { Route as CampaignsMapBuilderRouteImport } from './routes/campaigns.map-builder'
 import { Route as CampaignsGameTimelineRouteImport } from './routes/campaigns.game-timeline'
+import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 
 const RpgRulesRoute = RpgRulesRouteImport.update({
   id: '/rpg-rules',
@@ -31,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CampaignsIndexRoute = CampaignsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CampaignsRoute,
 } as any)
 const CampaignsStoryPinsRoute = CampaignsStoryPinsRouteImport.update({
   id: '/story-pins',
@@ -52,34 +59,44 @@ const CampaignsGameTimelineRoute = CampaignsGameTimelineRouteImport.update({
   path: '/game-timeline',
   getParentRoute: () => CampaignsRoute,
 } as any)
+const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
+  id: '/$campaignId',
+  path: '/$campaignId',
+  getParentRoute: () => CampaignsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
   '/rpg-rules': typeof RpgRulesRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
   '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
   '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
   '/campaigns/story-pins': typeof CampaignsStoryPinsRoute
+  '/campaigns/': typeof CampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/campaigns': typeof CampaignsRouteWithChildren
   '/rpg-rules': typeof RpgRulesRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
   '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
   '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
   '/campaigns/story-pins': typeof CampaignsStoryPinsRoute
+  '/campaigns': typeof CampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
   '/rpg-rules': typeof RpgRulesRoute
+  '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
   '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
   '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
   '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
   '/campaigns/story-pins': typeof CampaignsStoryPinsRoute
+  '/campaigns/': typeof CampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,28 +104,33 @@ export interface FileRouteTypes {
     | '/'
     | '/campaigns'
     | '/rpg-rules'
+    | '/campaigns/$campaignId'
     | '/campaigns/game-timeline'
     | '/campaigns/map-builder'
     | '/campaigns/npc-characters'
     | '/campaigns/story-pins'
+    | '/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/campaigns'
     | '/rpg-rules'
+    | '/campaigns/$campaignId'
     | '/campaigns/game-timeline'
     | '/campaigns/map-builder'
     | '/campaigns/npc-characters'
     | '/campaigns/story-pins'
+    | '/campaigns'
   id:
     | '__root__'
     | '/'
     | '/campaigns'
     | '/rpg-rules'
+    | '/campaigns/$campaignId'
     | '/campaigns/game-timeline'
     | '/campaigns/map-builder'
     | '/campaigns/npc-characters'
     | '/campaigns/story-pins'
+    | '/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -140,6 +162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns/': {
+      id: '/campaigns/'
+      path: '/'
+      fullPath: '/campaigns/'
+      preLoaderRoute: typeof CampaignsIndexRouteImport
+      parentRoute: typeof CampaignsRoute
+    }
     '/campaigns/story-pins': {
       id: '/campaigns/story-pins'
       path: '/story-pins'
@@ -168,21 +197,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsGameTimelineRouteImport
       parentRoute: typeof CampaignsRoute
     }
+    '/campaigns/$campaignId': {
+      id: '/campaigns/$campaignId'
+      path: '/$campaignId'
+      fullPath: '/campaigns/$campaignId'
+      preLoaderRoute: typeof CampaignsCampaignIdRouteImport
+      parentRoute: typeof CampaignsRoute
+    }
   }
 }
 
 interface CampaignsRouteChildren {
+  CampaignsCampaignIdRoute: typeof CampaignsCampaignIdRoute
   CampaignsGameTimelineRoute: typeof CampaignsGameTimelineRoute
   CampaignsMapBuilderRoute: typeof CampaignsMapBuilderRoute
   CampaignsNpcCharactersRoute: typeof CampaignsNpcCharactersRoute
   CampaignsStoryPinsRoute: typeof CampaignsStoryPinsRoute
+  CampaignsIndexRoute: typeof CampaignsIndexRoute
 }
 
 const CampaignsRouteChildren: CampaignsRouteChildren = {
+  CampaignsCampaignIdRoute: CampaignsCampaignIdRoute,
   CampaignsGameTimelineRoute: CampaignsGameTimelineRoute,
   CampaignsMapBuilderRoute: CampaignsMapBuilderRoute,
   CampaignsNpcCharactersRoute: CampaignsNpcCharactersRoute,
   CampaignsStoryPinsRoute: CampaignsStoryPinsRoute,
+  CampaignsIndexRoute: CampaignsIndexRoute,
 }
 
 const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(

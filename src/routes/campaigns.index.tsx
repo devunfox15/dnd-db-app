@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import FeaturePage from '@/features/game-timeline/page'
+import FeaturePage from '@/features/campaigns/page'
 
-export const Route = createFileRoute('/campaigns/game-timeline')({
+export const Route = createFileRoute('/campaigns/')({
   component: RouteComponent,
 })
 

@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { CampaignSectionWithChat } from '@/features/campaign-chat/components/campaign-section-with-chat'
-import { appRepository, useActiveCampaignId, useAppState } from '@/features/core/store'
+import {
+  appRepository,
+  useActiveCampaignId,
+  useAppState,
+} from '@/features/core/store'
 import type { NpcCharacter } from '@/features/core/types'
 import { NpcEditor } from '@/features/npc-characters/components/npc-editor'
 import { npcCharactersRepository } from '@/features/npc-characters/repository'
@@ -27,17 +31,21 @@ function newDraft(campaignId: string): NpcCharacter {
   }
 }
 
-export default function FeaturePage() {
+export default function FeaturePage({
+  campaignIdOverride,
+}: { campaignIdOverride?: string } = {}) {
   const state = useAppState()
-  const campaignId = useActiveCampaignId()
+  const campaignId = campaignIdOverride ?? useActiveCampaignId()
   const [search, setSearch] = useState('')
   const npcs = useNpcs(search, campaignId)
-  const [selectedId, setSelectedId] = useState<string | null>(npcs[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(
+    npcs[0]?.id ?? null,
+  )
   const [draft, setDraft] = useState<NpcCharacter | null>(null)
 
   const selected = useMemo(
     () => draft ?? npcs.find((npc) => npc.id === selectedId) ?? null,
-    [draft, npcs, selectedId]
+    [draft, npcs, selectedId],
   )
 
   useEffect(() => {
@@ -53,7 +61,11 @@ export default function FeaturePage() {
           <CardTitle>No Campaign Selected</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Create or open a campaign from <a className="underline underline-offset-2" href="/campaigns">/campaigns</a> to manage NPCs.
+          Create or open a campaign from{' '}
+          <a className="underline underline-offset-2" href="/campaigns">
+            /campaigns
+          </a>{' '}
+          to manage NPCs.
         </CardContent>
       </Card>
     )
@@ -120,13 +132,17 @@ export default function FeaturePage() {
 
   return (
     <CampaignSectionWithChat section="npc-characters">
-      <div className="grid gap-4 xl:grid-cols-[300px_1fr]">
+      <div className="grid w-full gap-3 ">
         <Card>
-          <CardHeader>
-            <CardTitle>NPC Characters</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">NPC Characters</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search NPCs" />
+          <CardContent className="space-y-2">
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search NPCs"
+            />
             <Button className="w-full" onClick={handleCreate}>
               Create NPC
             </Button>
@@ -146,7 +162,9 @@ export default function FeaturePage() {
                     }}
                   >
                     <p className="font-medium">{npc.name}</p>
-                    <p className="text-muted-foreground">{npc.role || 'No role set'}</p>
+                    <p className="text-muted-foreground">
+                      {npc.role || 'No role set'}
+                    </p>
                   </button>
                 ))
               )}
@@ -154,15 +172,19 @@ export default function FeaturePage() {
           </CardContent>
         </Card>
 
-        <NpcEditor
-          npc={selected}
-          maps={state.maps.filter((map) => map.campaignId === campaignId)}
-          events={state.timelineEvents.filter((event) => event.campaignId === campaignId)}
-          onChange={setDraft}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          onPinToStory={handlePinToStory}
-        />
+        <div>
+          <NpcEditor
+            npc={selected}
+            maps={state.maps.filter((map) => map.campaignId === campaignId)}
+            events={state.timelineEvents.filter(
+              (event) => event.campaignId === campaignId,
+            )}
+            onChange={setDraft}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onPinToStory={handlePinToStory}
+          />
+        </div>
       </div>
     </CampaignSectionWithChat>
   )

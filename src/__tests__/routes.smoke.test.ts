@@ -7,6 +7,7 @@ import { Route as CampaignPinsRoute } from '@/routes/campaigns.story-pins'
 import { Route as CampaignMapsRoute } from '@/routes/campaigns.map-builder'
 import { Route as CampaignNpcRoute } from '@/routes/campaigns.npc-characters'
 import { Route as CampaignTimelineRoute } from '@/routes/campaigns.game-timeline'
+import { Route as CampaignByIdRoute } from '@/routes/campaigns.$campaignId'
 
 describe('route smoke tests', () => {
   it('exports all DM workspace routes', () => {
@@ -17,5 +18,6 @@ describe('route smoke tests', () => {
     expect(CampaignMapsRoute).toBeDefined()
     expect(CampaignNpcRoute).toBeDefined()
     expect(CampaignTimelineRoute).toBeDefined()
+    expect(CampaignByIdRoute).toBeDefined()
   })
 })

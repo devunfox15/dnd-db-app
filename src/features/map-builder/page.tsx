@@ -28,9 +28,9 @@ function newDraft(campaignId: string): MapRecord {
   }
 }
 
-export default function FeaturePage() {
+export default function FeaturePage({ campaignIdOverride }: { campaignIdOverride?: string } = {}) {
   const state = useAppState()
-  const campaignId = useActiveCampaignId()
+  const campaignId = campaignIdOverride ?? useActiveCampaignId()
   const [search, setSearch] = useState('')
   const maps = useMaps(search, campaignId)
   const [selectedId, setSelectedId] = useState<string | null>(maps[0]?.id ?? null)

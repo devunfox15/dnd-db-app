@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 
 import {
   AlertDialog,
@@ -16,14 +17,15 @@ import { Input } from '@/components/ui/input'
 import { getCampaignDashboardItems } from '@/features/campaigns/dashboard-logic'
 import { rpgLabel, rpgOptions } from '@/features/campaigns/rpg-options'
 import { appRepository, useAppState } from '@/features/core/store'
-import type { CampaignRpgSystem } from '@/features/core/types'
+import type { CampaignRpgSystem, Campaign } from '@/features/core/types'
 
-function createCampaignId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return `campaign-${crypto.randomUUID()}`
-  }
+function getNextCampaignNumericId(campaigns: Campaign[]): string {
+  const maxNumericId = campaigns.reduce((maxValue, campaign) => {
+    const nextValue = /^\d+$/.test(campaign.id) ? Number(campaign.id) : Number.NaN
+    return Number.isFinite(nextValue) && nextValue > maxValue ? nextValue : maxValue
+  }, 0)
 
-  return `campaign-${Math.random().toString(36).slice(2, 10)}`
+  return String(maxNumericId + 1)
 }
 
 export default function FeaturePage() {
@@ -40,7 +42,7 @@ export default function FeaturePage() {
       return
     }
 
-    const id = createCampaignId()
+    const id = getNextCampaignNumericId(state.campaigns)
     const created = appRepository.create('campaigns', {
       id,
       campaignId: id,
@@ -141,9 +143,9 @@ export default function FeaturePage() {
                   </p>
 
                   <div className="flex items-center gap-2">
-                    <a href="/campaigns/npc-characters" onClick={() => handleOpenCampaign(item.campaign.id)}>
+                    <Link to="/campaigns/$campaignId" params={{ campaignId: item.campaign.id }} onClick={() => handleOpenCampaign(item.campaign.id)}>
                       <Button size="sm">Open</Button>
-                    </a>
+                    </Link>
                     <Button
                       size="sm"
                       variant="outline"

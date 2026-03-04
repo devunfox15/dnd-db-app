@@ -25,9 +25,9 @@ export function NpcEditor({
 }: NpcEditorProps) {
   if (!npc) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>NPC Details</CardTitle>
+      <Card className="h-fit">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">NPC Details</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground">Select or create an NPC.</CardContent>
       </Card>
@@ -35,11 +35,11 @@ export function NpcEditor({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>NPC Details</CardTitle>
+    <Card className="h-fit">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">NPC Details</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2.5">
         <Input value={npc.name} onChange={(event) => onChange({ ...npc, name: event.target.value })} placeholder="NPC name" />
         <Input value={npc.role} onChange={(event) => onChange({ ...npc, role: event.target.value })} placeholder="Role" />
         <Input

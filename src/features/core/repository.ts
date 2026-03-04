@@ -188,6 +188,10 @@ export const appRepository: Repository = {
     persistState(snapshot)
   },
   setActiveCampaign(campaignId) {
+    if (appState.activeCampaignId === campaignId) {
+      return
+    }
+
     const nextState = cloneState(appState)
     nextState.activeCampaignId = campaignId
     persistState(nextState)
