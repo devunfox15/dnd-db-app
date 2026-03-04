@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComponentExample } from "@/components/component-example";
+import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute("/")({ component: App });
+import { DmAppLayout } from '@/components/layout/dm-app-layout'
+import HomePage from '@/features/home/page'
 
-function App() {
-return (
-  <ComponentExample />
-);
+export const Route = createFileRoute('/')({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return (
+    <DmAppLayout pageTitle="Home">
+      <HomePage />
+    </DmAppLayout>
+  )
 }
