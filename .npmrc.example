@@ -1,9 +1,0 @@
-; Copy this file to .npmrc and fill in values for restricted environments.
-; Example private registry mirror:
-registry=${NPM_REGISTRY_URL}
-
-; If your registry requires auth for all packages:
-always-auth=true
-
-; Token sourced from environment variable (do not commit raw tokens):
-//${NPM_REGISTRY_HOST}/:_authToken=${NPM_TOKEN}
