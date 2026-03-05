@@ -18,6 +18,16 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
+  assetsInclude: ['**/*.wasm'],
+  optimizeDeps: {
+    exclude: ['@3d-dice/dice-box'],
+  },
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
 })
 
 export default config

@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { useLocation } from '@tanstack/react-router'
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import type { Theme } from '@/components/theme-provider'
@@ -21,6 +23,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { DiceTray } from '@/features/dice-roller/components/dice-tray'
+import { DiceTrayTrigger } from '@/features/dice-roller/components/dice-tray-trigger'
 
 export function DmAppLayout({
   pageTitle,
@@ -33,6 +37,13 @@ export function DmAppLayout({
 }) {
   const items = breadcrumbItems && breadcrumbItems.length > 0 ? breadcrumbItems : [pageTitle]
   const lastIndex = items.length - 1
+  const location = useLocation()
+  const [shouldRenderDiceUi, setShouldRenderDiceUi] = useState(false)
+  const isCampaignRoute = location.pathname.startsWith('/campaigns')
+
+  useEffect(() => {
+    setShouldRenderDiceUi(true)
+  }, [])
 
   return (
     <SidebarProvider>
@@ -61,6 +72,12 @@ export function DmAppLayout({
 
         <section className="flex flex-1 flex-col gap-4 p-4">{children}</section>
       </SidebarInset>
+      {shouldRenderDiceUi && isCampaignRoute ? (
+        <>
+          <DiceTrayTrigger />
+          <DiceTray />
+        </>
+      ) : null}
     </SidebarProvider>
   )
 }
