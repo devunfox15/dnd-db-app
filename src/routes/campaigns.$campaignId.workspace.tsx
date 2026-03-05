@@ -1,17 +1,11 @@
 import { Navigate, createFileRoute } from '@tanstack/react-router'
 
-import { useActiveCampaignId } from '@/features/core/store'
-
-export const Route = createFileRoute('/campaigns/game-timeline')({
+export const Route = createFileRoute('/campaigns/$campaignId/workspace')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const campaignId = useActiveCampaignId()
-
-  if (!campaignId) {
-    return <Navigate to="/campaigns" replace />
-  }
+  const { campaignId } = Route.useParams()
 
   return (
     <Navigate

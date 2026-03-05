@@ -1,3 +1,5 @@
+import { ChevronRightIcon } from 'lucide-react'
+import type { LucideProps } from 'lucide-react'
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,32 +15,40 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { ChevronRightIcon } from 'lucide-react'
 
+type LucideIcon = React.ForwardRefExoticComponent<
+  Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
+>
 export function NavMain({
   items,
 }: {
-  items: {
+  items: Array<{
     title: string
     url?: string
-    icon?: React.ReactNode
-    items?: {
+    icon?: LucideIcon
+    items?: Array<{
       title: string
       url: string
-    }[]
-  }[]
+      icon?: LucideIcon
+    }>
+  }>
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Dungeon Master</SidebarGroupLabel>
+      <SidebarGroupLabel>Dream ToolKit</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) =>
           item.items?.length ? (
-            <Collapsible key={item.title} asChild defaultOpen className="group/collapsible">
+            <Collapsible
+              key={item.title}
+              asChild
+              defaultOpen
+              className="group/collapsible"
+            >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={item.title}>
-                    {item.icon}
+                    {item.icon ? <item.icon className="size-4" /> : null}
                     <span>{item.title}</span>
                     <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
@@ -49,6 +59,9 @@ export function NavMain({
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
                           <a href={subItem.url}>
+                            {subItem.icon ? (
+                              <subItem.icon className="size-4" />
+                            ) : null}
                             <span>{subItem.title}</span>
                           </a>
                         </SidebarMenuSubButton>
@@ -62,12 +75,12 @@ export function NavMain({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild tooltip={item.title}>
                 <a href={item.url ?? '#'}>
-                  {item.icon}
+                  {item.icon ? <item.icon className="size-4" /> : null}
                   <span>{item.title}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          )
+          ),
         )}
       </SidebarMenu>
     </SidebarGroup>

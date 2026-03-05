@@ -47,7 +47,15 @@ function sourcePath(pin: StoryPin): string {
   }
 }
 
-export default function FeaturePage({ campaignIdOverride }: { campaignIdOverride?: string } = {}) {
+export default function FeaturePage({
+  campaignIdOverride,
+  title = 'Story Pins',
+  createLabel = 'Create Pin',
+}: {
+  campaignIdOverride?: string
+  title?: string
+  createLabel?: string
+} = {}) {
   const campaignId = campaignIdOverride ?? useActiveCampaignId()
   const [search, setSearch] = useState('')
   const pins = useStoryPins(search, campaignId)
@@ -125,12 +133,12 @@ export default function FeaturePage({ campaignIdOverride }: { campaignIdOverride
       <div className="grid gap-4 xl:grid-cols-[300px_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Story Pins</CardTitle>
+            <CardTitle>{title}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search pins" />
             <Button className="w-full" onClick={handleCreate}>
-              Create Pin
+              {createLabel}
             </Button>
 
             <div className="space-y-1">

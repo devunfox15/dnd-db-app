@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import type { Theme } from '@/components/theme-provider'
@@ -8,6 +8,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -22,9 +23,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { DiceTray } from '@/features/dice-roller/components/dice-tray'
 import { DiceTrayTrigger } from '@/features/dice-roller/components/dice-tray-trigger'
+
+type LayoutBreadcrumbItem = {
+  label: string
+  href?: string
+}
 
 export function DmAppLayout({
   pageTitle,
@@ -32,10 +42,16 @@ export function DmAppLayout({
   children,
 }: {
   pageTitle: string
-  breadcrumbItems?: string[]
+  breadcrumbItems?: Array<string | LayoutBreadcrumbItem>
   children: React.ReactNode
 }) {
-  const items = breadcrumbItems && breadcrumbItems.length > 0 ? breadcrumbItems : [pageTitle]
+  const items: Array<LayoutBreadcrumbItem> = (
+    breadcrumbItems && breadcrumbItems.length > 0
+      ? breadcrumbItems
+      : pageTitle === 'Home'
+        ? []
+        : [pageTitle]
+  ).map((item) => (typeof item === 'string' ? { label: item } : item))
   const lastIndex = items.length - 1
   const location = useLocation()
   const [shouldRenderDiceUi, setShouldRenderDiceUi] = useState(false)
@@ -54,12 +70,30 @@ export function DmAppLayout({
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem>Campaign Dashboard</BreadcrumbItem>
+              {items.length === 0 ? (
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Home</BreadcrumbPage>
+                </BreadcrumbItem>
+              ) : (
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/">Home</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              )}
               {items.map((item, index) => (
-                <div key={`${item}-${index}`} className="contents">
+                <div key={`${item.label}-${index}`} className="contents">
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    {index === lastIndex ? <BreadcrumbPage>{item}</BreadcrumbPage> : item}
+                    {index === lastIndex ? (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    ) : item.href ? (
+                      <BreadcrumbLink asChild>
+                        <Link to={item.href}>{item.label}</Link>
+                      </BreadcrumbLink>
+                    ) : (
+                      item.label
+                    )}
                   </BreadcrumbItem>
                 </div>
               ))}
@@ -85,7 +119,11 @@ export function DmAppLayout({
 function ThemeModeToggle() {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const Icon =
-    theme === 'system' ? MonitorIcon : resolvedTheme === 'dark' ? MoonIcon : SunIcon
+    theme === 'system'
+      ? MonitorIcon
+      : resolvedTheme === 'dark'
+        ? MoonIcon
+        : SunIcon
 
   const handleThemeChange = (value: string) => {
     if (value === 'light' || value === 'dark' || value === 'system') {
@@ -96,19 +134,34 @@ function ThemeModeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" aria-label="Theme" className="gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label="Theme"
+          className="gap-2"
+        >
           <Icon />
           <span className="hidden sm:inline">
-            {theme === 'system' ? 'System' : theme === 'dark' ? 'Dark' : 'Light'}
+            {theme === 'system'
+              ? 'System'
+              : theme === 'dark'
+                ? 'Dark'
+                : 'Light'}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={handleThemeChange}>
-          <DropdownMenuRadioItem value={'light' satisfies Theme}>Light</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value={'dark' satisfies Theme}>Dark</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value={'system' satisfies Theme}>System</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value={'light' satisfies Theme}>
+            Light
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value={'dark' satisfies Theme}>
+            Dark
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value={'system' satisfies Theme}>
+            System
+          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,22 +1,55 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useMemo } from 'react'
+import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { appRepository, useAppState } from '@/features/core/store'
-import GameTimelinePage from '@/features/game-timeline/page'
-import MapBuilderPage from '@/features/map-builder/page'
-import NpcCharactersPage from '@/features/npc-characters/page'
-import StoryPinsPage from '@/features/story-pins/page'
 
-const campaignSections = [
-  { id: 'npc-characters', label: 'NPC Characters' },
-  { id: 'game-timeline', label: 'Game Timeline' },
-  { id: 'map-builder', label: 'Map Builder' },
-  { id: 'story-pins', label: 'Story Pins' },
-] as const
+const sessionWorkspaceLinks = [
+  {
+    label: 'Scene Notes',
+    to: '/campaigns/$campaignId/workspace/scene-notes' as const,
+  },
+  {
+    label: 'NPCs',
+    to: '/campaigns/$campaignId/workspace/npcs' as const,
+  },
+  {
+    label: 'Locations',
+    to: '/campaigns/$campaignId/workspace/locations' as const,
+  },
+  {
+    label: 'Encounters',
+    to: '/campaigns/$campaignId/workspace/encounters' as const,
+  },
+  {
+    label: 'Secrets',
+    to: '/campaigns/$campaignId/workspace/secrets' as const,
+  },
+  {
+    label: 'Session Board',
+    to: '/campaigns/$campaignId/workspace/session-board' as const,
+  },
+]
 
-type CampaignSectionId = (typeof campaignSections)[number]['id']
+const databaseLinks = [
+  {
+    label: 'NPC Database',
+    to: '/campaigns/$campaignId/npc-database' as const,
+  },
+  {
+    label: 'Location Database',
+    to: '/campaigns/$campaignId/location-database' as const,
+  },
+  {
+    label: 'Encounter Library',
+    to: '/campaigns/$campaignId/encounter-library' as const,
+  },
+  {
+    label: 'Lore / Secrets Database',
+    to: '/campaigns/$campaignId/lore-secrets-database' as const,
+  },
+]
 
 export const Route = createFileRoute('/campaigns/$campaignId')({
   component: RouteComponent,
@@ -24,38 +57,18 @@ export const Route = createFileRoute('/campaigns/$campaignId')({
 
 function RouteComponent() {
   const { campaignId } = Route.useParams()
+  const location = useLocation()
   const state = useAppState()
   const campaign = useMemo(
     () => state.campaigns.find((item) => item.id === campaignId) ?? null,
     [campaignId, state.campaigns],
   )
-  const [activeSection, setActiveSection] =
-    useState<CampaignSectionId>('npc-characters')
 
   useEffect(() => {
     if (campaign && state.activeCampaignId !== campaign.id) {
       appRepository.setActiveCampaign(campaign.id)
     }
   }, [campaign?.id, state.activeCampaignId])
-
-  let sectionComponent: ReactNode
-  switch (activeSection) {
-    case 'npc-characters':
-      sectionComponent = <NpcCharactersPage campaignIdOverride={campaignId} />
-      break
-    case 'game-timeline':
-      sectionComponent = <GameTimelinePage campaignIdOverride={campaignId} />
-      break
-    case 'map-builder':
-      sectionComponent = <MapBuilderPage campaignIdOverride={campaignId} />
-      break
-    case 'story-pins':
-      sectionComponent = <StoryPinsPage campaignIdOverride={campaignId} />
-      break
-    default:
-      sectionComponent = <NpcCharactersPage campaignIdOverride={campaignId} />
-      break
-  }
 
   if (!campaign) {
     return (
@@ -76,19 +89,65 @@ function RouteComponent() {
   }
 
   return (
-    <div className="w-full space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {campaignSections.map((section) => (
-          <Button
-            key={section.id}
-            variant={activeSection === section.id ? 'default' : 'outline'}
-            onClick={() => setActiveSection(section.id)}
-          >
-            {section.label}
-          </Button>
-        ))}
+    <div className="grid gap-4 xl:grid-cols-[270px_1fr]">
+      <Card className="h-fit">
+        <CardHeader>
+          <CardTitle>{campaign.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-xs uppercase text-muted-foreground">
+              Session Workspace
+            </p>
+            {sessionWorkspaceLinks.map((link) => {
+              const active = location.pathname === link.to.replace('$campaignId', campaignId)
+
+              return (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  params={{ campaignId }}
+                  className="block"
+                >
+                  <Button
+                    variant={active ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                  >
+                    {link.label}
+                  </Button>
+                </Link>
+              )
+            })}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs uppercase text-muted-foreground">Databases</p>
+            {databaseLinks.map((link) => {
+              const active = location.pathname === link.to.replace('$campaignId', campaignId)
+
+              return (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  params={{ campaignId }}
+                  className="block"
+                >
+                  <Button
+                    variant={active ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                  >
+                    {link.label}
+                  </Button>
+                </Link>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="min-w-0">
+        <Outlet />
       </div>
-      <div className="w-full rounded border">{sectionComponent}</div>
     </div>
   )
 }

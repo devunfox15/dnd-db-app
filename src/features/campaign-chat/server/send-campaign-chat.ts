@@ -3,7 +3,11 @@ import { createServerFn } from '@tanstack/react-start'
 import type { ChatMessage, SendCampaignChatInput, SendCampaignChatResult } from '@/features/campaign-chat/types'
 
 const DEFAULT_OLLAMA_MODEL = 'qwen3-coder-next'
-const REQUEST_TIMEOUT_MS = 30_000
+const REQUEST_TIMEOUT_MS = 120_000
+
+function stripThinkingTags(content: string): string {
+  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
+}
 
 interface OllamaChatResponse {
   message?: {
@@ -76,6 +80,7 @@ export async function requestOllamaChat(
       body: JSON.stringify({
         model,
         stream: false,
+        options: { think: false },
         messages: toOllamaMessages(input.systemPrompt, input.messages),
       }),
       signal: controller.signal,
@@ -86,7 +91,7 @@ export async function requestOllamaChat(
     }
 
     const payload = (await response.json()) as OllamaChatResponse
-    const reply = payload.message?.content?.trim()
+    const reply = stripThinkingTags(payload.message?.content ?? '')
 
     if (!reply) {
       throw new Error('Ollama returned an empty response.')

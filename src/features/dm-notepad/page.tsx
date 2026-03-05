@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { useAppState } from '@/features/core/store'
+import { useActiveCampaignId, useAppState } from '@/features/core/store'
 import { DEFAULT_CAMPAIGN_ID } from '@/features/core/sample-data'
 import type { DmNote } from '@/features/core/types'
 import { NotepadEditor } from '@/features/dm-notepad/components/notepad-editor'
@@ -25,11 +25,14 @@ function newDraft(campaignId: string): DmNote {
   }
 }
 
-export default function FeaturePage() {
+export default function FeaturePage({
+  campaignIdOverride,
+}: { campaignIdOverride?: string } = {}) {
   const state = useAppState()
-  const campaignId = state.campaigns[0]?.id ?? DEFAULT_CAMPAIGN_ID
+  const campaignId =
+    campaignIdOverride ?? useActiveCampaignId() ?? DEFAULT_CAMPAIGN_ID
   const [search, setSearch] = useState('')
-  const notes = useDmNotes(search)
+  const notes = useDmNotes(search, campaignId)
   const [selectedId, setSelectedId] = useState<string | null>(notes[0]?.id ?? null)
   const [draft, setDraft] = useState<DmNote | null>(null)
 
@@ -116,7 +119,7 @@ export default function FeaturePage() {
 
       <NotepadEditor
         note={selected}
-        pins={state.pins}
+        pins={state.pins.filter((pin) => pin.campaignId === campaignId)}
         onChange={setDraft}
         onSave={handleSave}
         onDelete={handleDelete}

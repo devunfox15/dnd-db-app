@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import { Route as HomeRoute } from '@/routes/index'
-import { Route as RpgRulesRoute } from '@/routes/rpg-rules'
+import { Route as RpgRulesRoute } from '@/routes/rpgs'
 import { Route as CampaignsRoute } from '@/routes/campaigns'
-import { Route as CampaignPinsRoute } from '@/routes/campaigns.story-pins'
+import { Route as CampaignPinsRoute } from '@/routes/campaigns.story'
 import { Route as CampaignMapsRoute } from '@/routes/campaigns.map-builder'
 import { Route as CampaignNpcRoute } from '@/routes/campaigns.npc-characters'
 import { Route as CampaignTimelineRoute } from '@/routes/campaigns.game-timeline'

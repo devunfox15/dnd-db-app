@@ -11,7 +11,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-
+import { Compass, LucideProps, Notebook } from 'lucide-react'
+export type LucideIcon = React.ForwardRefExoticComponent<
+  Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
+>
 const data = {
   user: {
     name: 'shadcn',
@@ -20,12 +23,14 @@ const data = {
   },
   navMain: [
     {
-      title: 'RPG Rules',
-      url: '/rpg-rules',
+      title: 'RPGs',
+      url: '/rpgs',
+      icon: Compass,
     },
     {
       title: 'Campaigns',
       url: '/campaigns',
+      icon: Notebook,
     },
   ],
 }
