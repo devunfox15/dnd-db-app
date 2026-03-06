@@ -16,19 +16,15 @@ function RouteComponent() {
     '/campaigns/map-builder': 'Map Builder',
     '/campaigns/story': 'Story',
   }
-  const workspaceLabelByKey: Record<string, string> = {
-    'scene-notes': 'Scene Notes',
+  const workspaceLabelBySegment: Record<string, string> = {
+    sessions: 'Sessions',
+    'player-characters': 'Player Characters',
     npcs: 'NPCs',
     locations: 'Locations',
+    'scene-notes': 'Scene Notes',
     encounters: 'Encounters',
     secrets: 'Secrets',
-    'session-board': 'Session Board',
-  }
-  const databaseLabelByKey: Record<string, string> = {
-    'npc-database': 'NPC Database',
-    'location-database': 'Location Database',
-    'encounter-library': 'Encounter Library',
-    'lore-secrets-database': 'Lore / Secrets Database',
+    'dm-screen': 'DM Screen',
   }
   const campaignSectionMatch = path.match(/^\/campaigns\/([^/]+)\/(.+)$/)
   const campaignOnlyMatch = path.match(/^\/campaigns\/([^/]+)\/?$/)
@@ -57,23 +53,57 @@ function RouteComponent() {
       const campaignId = campaignSectionMatch[1]
       const sectionPath = campaignSectionMatch[2]
       const campaign = state.campaigns.find((item) => item.id === campaignId)
+      const campaignName = campaign?.name ?? campaignId
+      const campaignHref = `/campaigns/${campaignId}`
+      const sessionsHref = `/campaigns/${campaignId}/workspace/sessions`
 
+      // /workspace/sessions/$sessionId
+      const sessionDetailMatch = sectionPath.match(/^workspace\/sessions\/([^/]+)$/)
+      if (sessionDetailMatch) {
+        const sessionId = sessionDetailMatch[1]
+        let sessionTitle = 'Session'
+        try {
+          const raw = localStorage.getItem(`dnd-db.workspace.sessions.${campaignId}`)
+          if (raw) {
+            const parsed = JSON.parse(raw) as { sessions: { id: string; title: string }[] }
+            sessionTitle = parsed.sessions.find((s) => s.id === sessionId)?.title ?? 'Session'
+          }
+        } catch {}
+        return [
+          { label: 'Campaigns', href: '/campaigns' },
+          { label: campaignName, href: campaignHref },
+          { label: 'Workspace', href: sessionsHref },
+          { label: 'Sessions', href: sessionsHref },
+          { label: sessionTitle },
+        ]
+      }
+
+      // /workspace/$section
       const workspaceMatch = sectionPath.match(/^workspace\/([^/]+)$/)
-      const workspaceLabel = workspaceMatch
-        ? workspaceLabelByKey[workspaceMatch[1]]
-        : null
-      const databaseLabel = databaseLabelByKey[sectionPath]
+      if (workspaceMatch) {
+        const sectionLabel = workspaceLabelBySegment[workspaceMatch[1]]
+        if (sectionLabel) {
+          return [
+            { label: 'Campaigns', href: '/campaigns' },
+            { label: campaignName, href: campaignHref },
+            { label: 'Workspace', href: sessionsHref },
+            { label: sectionLabel },
+          ]
+        }
+      }
+
+      // /workspace (index)
+      if (sectionPath === 'workspace' || sectionPath === 'workspace/') {
+        return [
+          { label: 'Campaigns', href: '/campaigns' },
+          { label: campaignName, href: campaignHref },
+          { label: 'Workspace' },
+        ]
+      }
 
       return [
         { label: 'Campaigns', href: '/campaigns' },
-        { label: campaign?.name ?? campaignId },
-        ...(workspaceLabel
-          ? [
-              { label: 'Session Workspace' },
-              { label: workspaceLabel },
-            ]
-          : []),
-        ...(databaseLabel ? [{ label: databaseLabel }] : []),
+        { label: campaignName },
       ]
     }
 

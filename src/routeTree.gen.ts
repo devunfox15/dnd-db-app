@@ -24,12 +24,16 @@ import { Route as CampaignsCampaignIdNpcDatabaseRouteImport } from './routes/cam
 import { Route as CampaignsCampaignIdLoreSecretsDatabaseRouteImport } from './routes/campaigns.$campaignId.lore-secrets-database'
 import { Route as CampaignsCampaignIdLocationDatabaseRouteImport } from './routes/campaigns.$campaignId.location-database'
 import { Route as CampaignsCampaignIdEncounterLibraryRouteImport } from './routes/campaigns.$campaignId.encounter-library'
-import { Route as CampaignsCampaignIdWorkspaceSessionBoardRouteImport } from './routes/campaigns.$campaignId.workspace.session-board'
+import { Route as CampaignsCampaignIdWorkspaceIndexRouteImport } from './routes/campaigns.$campaignId.workspace.index'
+import { Route as CampaignsCampaignIdWorkspaceSessionsRouteImport } from './routes/campaigns.$campaignId.workspace.sessions'
 import { Route as CampaignsCampaignIdWorkspaceSecretsRouteImport } from './routes/campaigns.$campaignId.workspace.secrets'
 import { Route as CampaignsCampaignIdWorkspaceSceneNotesRouteImport } from './routes/campaigns.$campaignId.workspace.scene-notes'
 import { Route as CampaignsCampaignIdWorkspaceNpcsRouteImport } from './routes/campaigns.$campaignId.workspace.npcs'
 import { Route as CampaignsCampaignIdWorkspaceLocationsRouteImport } from './routes/campaigns.$campaignId.workspace.locations'
 import { Route as CampaignsCampaignIdWorkspaceEncountersRouteImport } from './routes/campaigns.$campaignId.workspace.encounters'
+import { Route as CampaignsCampaignIdWorkspaceDmScreenRouteImport } from './routes/campaigns.$campaignId.workspace.dm-screen'
+import { Route as CampaignsCampaignIdWorkspaceSessionsIndexRouteImport } from './routes/campaigns.$campaignId.workspace.sessions.index'
+import { Route as CampaignsCampaignIdWorkspaceSessionsSessionIdRouteImport } from './routes/campaigns.$campaignId.workspace.sessions.$sessionId'
 
 const RpgsRoute = RpgsRouteImport.update({
   id: '/rpgs',
@@ -112,10 +116,16 @@ const CampaignsCampaignIdEncounterLibraryRoute =
     path: '/encounter-library',
     getParentRoute: () => CampaignsCampaignIdRoute,
   } as any)
-const CampaignsCampaignIdWorkspaceSessionBoardRoute =
-  CampaignsCampaignIdWorkspaceSessionBoardRouteImport.update({
-    id: '/session-board',
-    path: '/session-board',
+const CampaignsCampaignIdWorkspaceIndexRoute =
+  CampaignsCampaignIdWorkspaceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
+  } as any)
+const CampaignsCampaignIdWorkspaceSessionsRoute =
+  CampaignsCampaignIdWorkspaceSessionsRouteImport.update({
+    id: '/sessions',
+    path: '/sessions',
     getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
   } as any)
 const CampaignsCampaignIdWorkspaceSecretsRoute =
@@ -148,6 +158,24 @@ const CampaignsCampaignIdWorkspaceEncountersRoute =
     path: '/encounters',
     getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
   } as any)
+const CampaignsCampaignIdWorkspaceDmScreenRoute =
+  CampaignsCampaignIdWorkspaceDmScreenRouteImport.update({
+    id: '/dm-screen',
+    path: '/dm-screen',
+    getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
+  } as any)
+const CampaignsCampaignIdWorkspaceSessionsIndexRoute =
+  CampaignsCampaignIdWorkspaceSessionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CampaignsCampaignIdWorkspaceSessionsRoute,
+  } as any)
+const CampaignsCampaignIdWorkspaceSessionsSessionIdRoute =
+  CampaignsCampaignIdWorkspaceSessionsSessionIdRouteImport.update({
+    id: '/$sessionId',
+    path: '/$sessionId',
+    getParentRoute: () => CampaignsCampaignIdWorkspaceSessionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,12 +193,16 @@ export interface FileRoutesByFullPath {
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
   '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceRouteWithChildren
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
+  '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
   '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   '/campaigns/$campaignId/workspace/secrets': typeof CampaignsCampaignIdWorkspaceSecretsRoute
-  '/campaigns/$campaignId/workspace/session-board': typeof CampaignsCampaignIdWorkspaceSessionBoardRoute
+  '/campaigns/$campaignId/workspace/sessions': typeof CampaignsCampaignIdWorkspaceSessionsRouteWithChildren
+  '/campaigns/$campaignId/workspace/': typeof CampaignsCampaignIdWorkspaceIndexRoute
+  '/campaigns/$campaignId/workspace/sessions/$sessionId': typeof CampaignsCampaignIdWorkspaceSessionsSessionIdRoute
+  '/campaigns/$campaignId/workspace/sessions/': typeof CampaignsCampaignIdWorkspaceSessionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -184,14 +216,16 @@ export interface FileRoutesByTo {
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
-  '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceRouteWithChildren
   '/campaigns/$campaignId': typeof CampaignsCampaignIdIndexRoute
+  '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
   '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   '/campaigns/$campaignId/workspace/secrets': typeof CampaignsCampaignIdWorkspaceSecretsRoute
-  '/campaigns/$campaignId/workspace/session-board': typeof CampaignsCampaignIdWorkspaceSessionBoardRoute
+  '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceIndexRoute
+  '/campaigns/$campaignId/workspace/sessions/$sessionId': typeof CampaignsCampaignIdWorkspaceSessionsSessionIdRoute
+  '/campaigns/$campaignId/workspace/sessions': typeof CampaignsCampaignIdWorkspaceSessionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -210,12 +244,16 @@ export interface FileRoutesById {
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
   '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceRouteWithChildren
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
+  '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
   '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   '/campaigns/$campaignId/workspace/secrets': typeof CampaignsCampaignIdWorkspaceSecretsRoute
-  '/campaigns/$campaignId/workspace/session-board': typeof CampaignsCampaignIdWorkspaceSessionBoardRoute
+  '/campaigns/$campaignId/workspace/sessions': typeof CampaignsCampaignIdWorkspaceSessionsRouteWithChildren
+  '/campaigns/$campaignId/workspace/': typeof CampaignsCampaignIdWorkspaceIndexRoute
+  '/campaigns/$campaignId/workspace/sessions/$sessionId': typeof CampaignsCampaignIdWorkspaceSessionsSessionIdRoute
+  '/campaigns/$campaignId/workspace/sessions/': typeof CampaignsCampaignIdWorkspaceSessionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -235,12 +273,16 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId/npc-database'
     | '/campaigns/$campaignId/workspace'
     | '/campaigns/$campaignId/'
+    | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
     | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/scene-notes'
     | '/campaigns/$campaignId/workspace/secrets'
-    | '/campaigns/$campaignId/workspace/session-board'
+    | '/campaigns/$campaignId/workspace/sessions'
+    | '/campaigns/$campaignId/workspace/'
+    | '/campaigns/$campaignId/workspace/sessions/$sessionId'
+    | '/campaigns/$campaignId/workspace/sessions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -254,14 +296,16 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
     | '/campaigns/$campaignId/npc-database'
-    | '/campaigns/$campaignId/workspace'
     | '/campaigns/$campaignId'
+    | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
     | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/scene-notes'
     | '/campaigns/$campaignId/workspace/secrets'
-    | '/campaigns/$campaignId/workspace/session-board'
+    | '/campaigns/$campaignId/workspace'
+    | '/campaigns/$campaignId/workspace/sessions/$sessionId'
+    | '/campaigns/$campaignId/workspace/sessions'
   id:
     | '__root__'
     | '/'
@@ -279,12 +323,16 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId/npc-database'
     | '/campaigns/$campaignId/workspace'
     | '/campaigns/$campaignId/'
+    | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
     | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/scene-notes'
     | '/campaigns/$campaignId/workspace/secrets'
-    | '/campaigns/$campaignId/workspace/session-board'
+    | '/campaigns/$campaignId/workspace/sessions'
+    | '/campaigns/$campaignId/workspace/'
+    | '/campaigns/$campaignId/workspace/sessions/$sessionId'
+    | '/campaigns/$campaignId/workspace/sessions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -400,11 +448,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsCampaignIdEncounterLibraryRouteImport
       parentRoute: typeof CampaignsCampaignIdRoute
     }
-    '/campaigns/$campaignId/workspace/session-board': {
-      id: '/campaigns/$campaignId/workspace/session-board'
-      path: '/session-board'
-      fullPath: '/campaigns/$campaignId/workspace/session-board'
-      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceSessionBoardRouteImport
+    '/campaigns/$campaignId/workspace/': {
+      id: '/campaigns/$campaignId/workspace/'
+      path: '/'
+      fullPath: '/campaigns/$campaignId/workspace/'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceIndexRouteImport
+      parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
+    }
+    '/campaigns/$campaignId/workspace/sessions': {
+      id: '/campaigns/$campaignId/workspace/sessions'
+      path: '/sessions'
+      fullPath: '/campaigns/$campaignId/workspace/sessions'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceSessionsRouteImport
       parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
     }
     '/campaigns/$campaignId/workspace/secrets': {
@@ -442,20 +497,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsCampaignIdWorkspaceEncountersRouteImport
       parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
     }
+    '/campaigns/$campaignId/workspace/dm-screen': {
+      id: '/campaigns/$campaignId/workspace/dm-screen'
+      path: '/dm-screen'
+      fullPath: '/campaigns/$campaignId/workspace/dm-screen'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceDmScreenRouteImport
+      parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
+    }
+    '/campaigns/$campaignId/workspace/sessions/': {
+      id: '/campaigns/$campaignId/workspace/sessions/'
+      path: '/'
+      fullPath: '/campaigns/$campaignId/workspace/sessions/'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceSessionsIndexRouteImport
+      parentRoute: typeof CampaignsCampaignIdWorkspaceSessionsRoute
+    }
+    '/campaigns/$campaignId/workspace/sessions/$sessionId': {
+      id: '/campaigns/$campaignId/workspace/sessions/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/campaigns/$campaignId/workspace/sessions/$sessionId'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceSessionsSessionIdRouteImport
+      parentRoute: typeof CampaignsCampaignIdWorkspaceSessionsRoute
+    }
   }
 }
 
+interface CampaignsCampaignIdWorkspaceSessionsRouteChildren {
+  CampaignsCampaignIdWorkspaceSessionsSessionIdRoute: typeof CampaignsCampaignIdWorkspaceSessionsSessionIdRoute
+  CampaignsCampaignIdWorkspaceSessionsIndexRoute: typeof CampaignsCampaignIdWorkspaceSessionsIndexRoute
+}
+
+const CampaignsCampaignIdWorkspaceSessionsRouteChildren: CampaignsCampaignIdWorkspaceSessionsRouteChildren =
+  {
+    CampaignsCampaignIdWorkspaceSessionsSessionIdRoute:
+      CampaignsCampaignIdWorkspaceSessionsSessionIdRoute,
+    CampaignsCampaignIdWorkspaceSessionsIndexRoute:
+      CampaignsCampaignIdWorkspaceSessionsIndexRoute,
+  }
+
+const CampaignsCampaignIdWorkspaceSessionsRouteWithChildren =
+  CampaignsCampaignIdWorkspaceSessionsRoute._addFileChildren(
+    CampaignsCampaignIdWorkspaceSessionsRouteChildren,
+  )
+
 interface CampaignsCampaignIdWorkspaceRouteChildren {
+  CampaignsCampaignIdWorkspaceDmScreenRoute: typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   CampaignsCampaignIdWorkspaceEncountersRoute: typeof CampaignsCampaignIdWorkspaceEncountersRoute
   CampaignsCampaignIdWorkspaceLocationsRoute: typeof CampaignsCampaignIdWorkspaceLocationsRoute
   CampaignsCampaignIdWorkspaceNpcsRoute: typeof CampaignsCampaignIdWorkspaceNpcsRoute
   CampaignsCampaignIdWorkspaceSceneNotesRoute: typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   CampaignsCampaignIdWorkspaceSecretsRoute: typeof CampaignsCampaignIdWorkspaceSecretsRoute
-  CampaignsCampaignIdWorkspaceSessionBoardRoute: typeof CampaignsCampaignIdWorkspaceSessionBoardRoute
+  CampaignsCampaignIdWorkspaceSessionsRoute: typeof CampaignsCampaignIdWorkspaceSessionsRouteWithChildren
+  CampaignsCampaignIdWorkspaceIndexRoute: typeof CampaignsCampaignIdWorkspaceIndexRoute
 }
 
 const CampaignsCampaignIdWorkspaceRouteChildren: CampaignsCampaignIdWorkspaceRouteChildren =
   {
+    CampaignsCampaignIdWorkspaceDmScreenRoute:
+      CampaignsCampaignIdWorkspaceDmScreenRoute,
     CampaignsCampaignIdWorkspaceEncountersRoute:
       CampaignsCampaignIdWorkspaceEncountersRoute,
     CampaignsCampaignIdWorkspaceLocationsRoute:
@@ -466,8 +564,10 @@ const CampaignsCampaignIdWorkspaceRouteChildren: CampaignsCampaignIdWorkspaceRou
       CampaignsCampaignIdWorkspaceSceneNotesRoute,
     CampaignsCampaignIdWorkspaceSecretsRoute:
       CampaignsCampaignIdWorkspaceSecretsRoute,
-    CampaignsCampaignIdWorkspaceSessionBoardRoute:
-      CampaignsCampaignIdWorkspaceSessionBoardRoute,
+    CampaignsCampaignIdWorkspaceSessionsRoute:
+      CampaignsCampaignIdWorkspaceSessionsRouteWithChildren,
+    CampaignsCampaignIdWorkspaceIndexRoute:
+      CampaignsCampaignIdWorkspaceIndexRoute,
   }
 
 const CampaignsCampaignIdWorkspaceRouteWithChildren =

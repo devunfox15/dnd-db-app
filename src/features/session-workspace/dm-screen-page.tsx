@@ -1,4 +1,11 @@
 import { useMemo, useState } from 'react'
+import {
+  ChevronUp,
+  ChevronDown,
+  X,
+  GripVertical,
+  Plus,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -57,7 +64,7 @@ function findItemColumn(
   return null
 }
 
-export default function SessionBoardPage({ campaignId }: { campaignId: string }) {
+export default function DmScreenPage({ campaignId }: { campaignId: string }) {
   const state = useAppState()
   const { state: boardState, setState } = useSessionBoard(campaignId)
   const [dragItemId, setDragItemId] = useState<string | null>(null)
@@ -82,7 +89,8 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
     const next: SuggestedItem[] = []
 
     const activeScene = state.notes.find(
-      (note) => note.id === sceneState.activeSceneId && note.campaignId === campaignId,
+      (note) =>
+        note.id === sceneState.activeSceneId && note.campaignId === campaignId,
     )
     if (activeScene) {
       next.push({
@@ -107,7 +115,8 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
     }
 
     const selectedLocation = state.maps.find(
-      (map) => map.id === locationState.selectedMapId && map.campaignId === campaignId,
+      (map) =>
+        map.id === locationState.selectedMapId && map.campaignId === campaignId,
     )
 
     if (selectedLocation) {
@@ -151,7 +160,15 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
     }
 
     return next
-  }, [campaignId, locationState.selectedMapId, sceneState.activeSceneId, state.maps, state.notes, state.npcs, state.pins])
+  }, [
+    campaignId,
+    locationState.selectedMapId,
+    sceneState.activeSceneId,
+    state.maps,
+    state.notes,
+    state.npcs,
+    state.pins,
+  ])
 
   const moveAcrossColumns = (
     itemId: string,
@@ -180,7 +197,10 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
     const [moved] = sourceItems.splice(sourceIndex, 1)
 
     if (sourceColumnId === targetColumnId) {
-      const nextIndex = Math.max(0, Math.min(targetIndex ?? 0, targetItems.length))
+      const nextIndex = Math.max(
+        0,
+        Math.min(targetIndex ?? 0, targetItems.length),
+      )
       targetItems.splice(nextIndex, 0, moved)
       setState((current) => ({
         ...current,
@@ -211,8 +231,10 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Suggested Pins</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            Suggested Pins
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {suggestions.length === 0 ? (
@@ -225,6 +247,8 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
                 <Button
                   key={suggestion.item.id}
                   variant="outline"
+                  size="sm"
+                  className="gap-1.5"
                   onClick={() =>
                     addItemToSessionBoard(
                       campaignId,
@@ -233,7 +257,8 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
                     )
                   }
                 >
-                  Add {suggestion.item.title}
+                  <Plus className="size-3.5" />
+                  {suggestion.item.title}
                 </Button>
               ))}
             </div>
@@ -257,12 +282,16 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
                 setDragItemId(null)
               }}
             >
-              <CardHeader>
-                <CardTitle>{column.label}</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">
+                  {column.label}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1.5">
                 {items.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No pinned cards.</p>
+                  <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
+                    No pinned cards
+                  </p>
                 ) : (
                   items.map((item, index) => (
                     <div
@@ -299,70 +328,87 @@ export default function SessionBoardPage({ campaignId }: { campaignId: string })
                             },
                           }))
                         } else {
-                          const targetIndex = boardState.columns[column.id].findIndex(
-                            (entry) => entry.id === item.id,
-                          )
+                          const targetIndex = boardState.columns[
+                            column.id
+                          ].findIndex((entry) => entry.id === item.id)
                           moveAcrossColumns(dragItemId, column.id, targetIndex)
                         }
 
                         setDragItemId(null)
                       }}
-                      className="rounded border bg-card p-2"
+                      className={`group flex cursor-grab items-center gap-2 rounded-md border bg-card px-2 py-1.5 transition-colors duration-150 active:cursor-grabbing ${
+                        dragItemId === item.id ? 'opacity-50' : 'hover:bg-accent/50'
+                      }`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="flex-1 text-left text-sm font-medium">
-                          {item.title}
-                        </p>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const targetIndex = index - 1
-                              if (targetIndex < 0) {
-                                return
-                              }
-
-                              setState((current) => ({
-                                ...current,
-                                columns: {
-                                  ...current.columns,
-                                  [column.id]: reorderWithinColumn(
-                                    current.columns[column.id],
-                                    item.id,
-                                    current.columns[column.id][targetIndex].id,
-                                  ),
-                                },
-                              }))
-                            }}
-                          >
-                            Up
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const targetIndex = index + 1
-                              if (targetIndex >= items.length) {
-                                return
-                              }
-
-                              setState((current) => ({
-                                ...current,
-                                columns: {
-                                  ...current.columns,
-                                  [column.id]: reorderWithinColumn(
-                                    current.columns[column.id],
-                                    item.id,
-                                    current.columns[column.id][targetIndex].id,
-                                  ),
-                                },
-                              }))
-                            }}
-                          >
-                            Down
-                          </Button>
-                        </div>
+                      <GripVertical className="size-3.5 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
+                      <p className="flex-1 truncate text-sm font-medium">
+                        {item.title}
+                      </p>
+                      <div className="flex shrink-0 items-center">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 cursor-pointer"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const targetIndex = index - 1
+                            if (targetIndex < 0) return
+                            setState((current) => ({
+                              ...current,
+                              columns: {
+                                ...current.columns,
+                                [column.id]: reorderWithinColumn(
+                                  current.columns[column.id],
+                                  item.id,
+                                  current.columns[column.id][targetIndex].id,
+                                ),
+                              },
+                            }))
+                          }}
+                        >
+                          <ChevronUp className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 cursor-pointer"
+                          disabled={index === items.length - 1}
+                          onClick={() => {
+                            const targetIndex = index + 1
+                            if (targetIndex >= items.length) return
+                            setState((current) => ({
+                              ...current,
+                              columns: {
+                                ...current.columns,
+                                [column.id]: reorderWithinColumn(
+                                  current.columns[column.id],
+                                  item.id,
+                                  current.columns[column.id][targetIndex].id,
+                                ),
+                              },
+                            }))
+                          }}
+                        >
+                          <ChevronDown className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 cursor-pointer text-muted-foreground hover:text-destructive"
+                          onClick={() => {
+                            setState((current) => ({
+                              ...current,
+                              columns: {
+                                ...current.columns,
+                                [column.id]: current.columns[column.id].filter(
+                                  (entry) => entry.id !== item.id,
+                                ),
+                              },
+                            }))
+                          }}
+                        >
+                          <X className="size-3.5" />
+                        </Button>
                       </div>
                     </div>
                   ))

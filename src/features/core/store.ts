@@ -3,8 +3,6 @@ import { useMemo, useSyncExternalStore } from 'react'
 import { appRepository } from './repository'
 import type { AppState, CollectionKey, EntityByCollection, ListFilters } from './types'
 
-appRepository.seedIfEmpty()
-
 export function useAppState(): AppState {
   return useSyncExternalStore(appRepository.subscribe, appRepository.getState, appRepository.getState)
 }
