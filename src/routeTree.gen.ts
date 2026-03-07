@@ -13,10 +13,6 @@ import { Route as RpgsRouteImport } from './routes/rpgs'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CampaignsIndexRouteImport } from './routes/campaigns.index'
-import { Route as CampaignsStoryRouteImport } from './routes/campaigns.story'
-import { Route as CampaignsNpcCharactersRouteImport } from './routes/campaigns.npc-characters'
-import { Route as CampaignsMapBuilderRouteImport } from './routes/campaigns.map-builder'
-import { Route as CampaignsGameTimelineRouteImport } from './routes/campaigns.game-timeline'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 import { Route as CampaignsCampaignIdIndexRouteImport } from './routes/campaigns.$campaignId.index'
 import { Route as CampaignsCampaignIdWorkspaceRouteImport } from './routes/campaigns.$campaignId.workspace'
@@ -53,26 +49,6 @@ const IndexRoute = IndexRouteImport.update({
 const CampaignsIndexRoute = CampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => CampaignsRoute,
-} as any)
-const CampaignsStoryRoute = CampaignsStoryRouteImport.update({
-  id: '/story',
-  path: '/story',
-  getParentRoute: () => CampaignsRoute,
-} as any)
-const CampaignsNpcCharactersRoute = CampaignsNpcCharactersRouteImport.update({
-  id: '/npc-characters',
-  path: '/npc-characters',
-  getParentRoute: () => CampaignsRoute,
-} as any)
-const CampaignsMapBuilderRoute = CampaignsMapBuilderRouteImport.update({
-  id: '/map-builder',
-  path: '/map-builder',
-  getParentRoute: () => CampaignsRoute,
-} as any)
-const CampaignsGameTimelineRoute = CampaignsGameTimelineRouteImport.update({
-  id: '/game-timeline',
-  path: '/game-timeline',
   getParentRoute: () => CampaignsRoute,
 } as any)
 const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
@@ -182,10 +158,6 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/rpgs': typeof RpgsRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
-  '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
-  '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
-  '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
-  '/campaigns/story': typeof CampaignsStoryRoute
   '/campaigns/': typeof CampaignsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -207,10 +179,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/rpgs': typeof RpgsRoute
-  '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
-  '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
-  '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
-  '/campaigns/story': typeof CampaignsStoryRoute
   '/campaigns': typeof CampaignsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -233,10 +201,6 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/rpgs': typeof RpgsRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
-  '/campaigns/game-timeline': typeof CampaignsGameTimelineRoute
-  '/campaigns/map-builder': typeof CampaignsMapBuilderRoute
-  '/campaigns/npc-characters': typeof CampaignsNpcCharactersRoute
-  '/campaigns/story': typeof CampaignsStoryRoute
   '/campaigns/': typeof CampaignsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -262,10 +226,6 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/rpgs'
     | '/campaigns/$campaignId'
-    | '/campaigns/game-timeline'
-    | '/campaigns/map-builder'
-    | '/campaigns/npc-characters'
-    | '/campaigns/story'
     | '/campaigns/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -287,10 +247,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/rpgs'
-    | '/campaigns/game-timeline'
-    | '/campaigns/map-builder'
-    | '/campaigns/npc-characters'
-    | '/campaigns/story'
     | '/campaigns'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -312,10 +268,6 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/rpgs'
     | '/campaigns/$campaignId'
-    | '/campaigns/game-timeline'
-    | '/campaigns/map-builder'
-    | '/campaigns/npc-characters'
-    | '/campaigns/story'
     | '/campaigns/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -369,34 +321,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/campaigns/'
       preLoaderRoute: typeof CampaignsIndexRouteImport
-      parentRoute: typeof CampaignsRoute
-    }
-    '/campaigns/story': {
-      id: '/campaigns/story'
-      path: '/story'
-      fullPath: '/campaigns/story'
-      preLoaderRoute: typeof CampaignsStoryRouteImport
-      parentRoute: typeof CampaignsRoute
-    }
-    '/campaigns/npc-characters': {
-      id: '/campaigns/npc-characters'
-      path: '/npc-characters'
-      fullPath: '/campaigns/npc-characters'
-      preLoaderRoute: typeof CampaignsNpcCharactersRouteImport
-      parentRoute: typeof CampaignsRoute
-    }
-    '/campaigns/map-builder': {
-      id: '/campaigns/map-builder'
-      path: '/map-builder'
-      fullPath: '/campaigns/map-builder'
-      preLoaderRoute: typeof CampaignsMapBuilderRouteImport
-      parentRoute: typeof CampaignsRoute
-    }
-    '/campaigns/game-timeline': {
-      id: '/campaigns/game-timeline'
-      path: '/game-timeline'
-      fullPath: '/campaigns/game-timeline'
-      preLoaderRoute: typeof CampaignsGameTimelineRouteImport
       parentRoute: typeof CampaignsRoute
     }
     '/campaigns/$campaignId': {
@@ -602,19 +526,11 @@ const CampaignsCampaignIdRouteWithChildren =
 
 interface CampaignsRouteChildren {
   CampaignsCampaignIdRoute: typeof CampaignsCampaignIdRouteWithChildren
-  CampaignsGameTimelineRoute: typeof CampaignsGameTimelineRoute
-  CampaignsMapBuilderRoute: typeof CampaignsMapBuilderRoute
-  CampaignsNpcCharactersRoute: typeof CampaignsNpcCharactersRoute
-  CampaignsStoryRoute: typeof CampaignsStoryRoute
   CampaignsIndexRoute: typeof CampaignsIndexRoute
 }
 
 const CampaignsRouteChildren: CampaignsRouteChildren = {
   CampaignsCampaignIdRoute: CampaignsCampaignIdRouteWithChildren,
-  CampaignsGameTimelineRoute: CampaignsGameTimelineRoute,
-  CampaignsMapBuilderRoute: CampaignsMapBuilderRoute,
-  CampaignsNpcCharactersRoute: CampaignsNpcCharactersRoute,
-  CampaignsStoryRoute: CampaignsStoryRoute,
   CampaignsIndexRoute: CampaignsIndexRoute,
 }
 
