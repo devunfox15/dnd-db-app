@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react'
+import { isSortableOperation } from '@dnd-kit/react/sortable'
+import { useSortable } from '@dnd-kit/react/sortable'
 import {
   ArrowLeft,
   EyeOff,
+  GripVertical,
   Monitor,
   Plus,
   ScrollText,
@@ -12,13 +16,6 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useCollection } from '@/features/core/store'
@@ -42,8 +39,7 @@ interface SessionsState {
 interface SceneBlock {
   kind: 'scene'
   id: string
-  title: string
-  body: string
+  text: string
 }
 
 interface EncounterBlock {
@@ -73,6 +69,7 @@ interface SessionPlanState {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 type ViewTab = 'builder' | 'dm-screen'
+type AddingKind = 'scene' | 'encounter' | 'secret' | null
 
 const tabs: { id: ViewTab; label: string; icon: LucideIcon }[] = [
   { id: 'builder', label: 'Builder', icon: ScrollText },
@@ -100,38 +97,51 @@ const DND_SKILLS = [
   'Survival',
 ]
 
+function arrayMove<T>(arr: T[], from: number, to: number): T[] {
+  const result = [...arr]
+  result.splice(to, 0, result.splice(from, 1)[0])
+  return result
+}
+
 // ─── Card Components ──────────────────────────────────────────────────────────
 
 function SceneCard({
   item,
   onDelete,
+  handleRef,
 }: {
   item: SceneBlock
-  onDelete: () => void
+  onDelete?: () => void
+  handleRef?: (el: Element | null) => void
 }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-l-4 border-l-indigo-500 bg-card p-4">
-      <ScrollText className="mt-0.5 size-4 shrink-0 text-indigo-500" />
-      <div className="min-w-0 flex-1">
-        <div className="mb-0.5 flex items-start justify-between gap-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-indigo-500">
-            Scene
-          </span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+    <div className="flex items-stretch rounded-lg border bg-card shadow-sm">
+      <div
+        ref={handleRef}
+        className="flex cursor-grab items-center px-2 text-muted-foreground/30 hover:text-muted-foreground/70 active:cursor-grabbing"
+      >
+        <GripVertical className="size-4" />
+      </div>
+      <div className="w-0.5 shrink-0 bg-indigo-500" />
+      <div className="min-w-0 flex-1 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-500">
+              Scene
+            </span>
+            <p className="line-clamp-3 text-sm leading-snug">{item.text}</p>
+          </div>
+          {onDelete && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
         </div>
-        <p className="font-medium leading-snug">{item.title}</p>
-        {item.body && (
-          <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">
-            {item.body}
-          </p>
-        )}
       </div>
     </div>
   )
@@ -140,31 +150,47 @@ function SceneCard({
 function EncounterCard({
   item,
   onDelete,
+  handleRef,
 }: {
   item: EncounterBlock
-  onDelete: () => void
+  onDelete?: () => void
+  handleRef?: (el: Element | null) => void
 }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-l-4 border-l-red-500 bg-card p-4">
-      <Swords className="mt-0.5 size-4 shrink-0 text-red-500" />
-      <div className="min-w-0 flex-1">
-        <div className="mb-0.5 flex items-start justify-between gap-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-            Encounter
-          </span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+    <div className="flex items-stretch rounded-lg border bg-card shadow-sm">
+      <div
+        ref={handleRef}
+        className="flex cursor-grab items-center px-2 text-muted-foreground/30 hover:text-muted-foreground/70 active:cursor-grabbing"
+      >
+        <GripVertical className="size-4" />
+      </div>
+      <div className="w-0.5 shrink-0 bg-red-500" />
+      <div className="min-w-0 flex-1 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-red-500">
+              Encounter
+            </span>
+            <p className="font-medium leading-snug">
+              {item.count > 1 && (
+                <span className="mr-1.5 inline-flex items-center rounded bg-red-500/10 px-1.5 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                  ×{item.count}
+                </span>
+              )}
+              {item.monsterName}
+            </p>
+          </div>
+          {onDelete && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
         </div>
-        <p className="font-medium leading-snug">
-          {item.count > 1 ? `${item.count}× ` : ''}
-          {item.monsterName}
-        </p>
         {item.notes && (
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
             {item.notes}
@@ -178,36 +204,366 @@ function EncounterCard({
 function SecretCard({
   item,
   onDelete,
+  handleRef,
 }: {
   item: SecretBlock
-  onDelete: () => void
+  onDelete?: () => void
+  handleRef?: (el: Element | null) => void
 }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-l-4 border-l-amber-500 bg-card p-4">
-      <EyeOff className="mt-0.5 size-4 shrink-0 text-amber-500" />
-      <div className="min-w-0 flex-1">
-        <div className="mb-0.5 flex items-start justify-between gap-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-amber-500">
-            Secret
-          </span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+    <div className="flex items-stretch rounded-lg border bg-card shadow-sm">
+      <div
+        ref={handleRef}
+        className="flex cursor-grab items-center px-2 text-muted-foreground/30 hover:text-muted-foreground/70 active:cursor-grabbing"
+      >
+        <GripVertical className="size-4" />
+      </div>
+      <div className="w-0.5 shrink-0 bg-amber-500" />
+      <div className="min-w-0 flex-1 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500">
+              Secret
+            </span>
+            <p className="font-medium leading-snug">{item.title}</p>
+          </div>
+          {onDelete && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
         </div>
-        <p className="font-medium leading-snug">{item.title}</p>
-        <span className="mt-1 inline-block rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-          {item.skill} DC {item.dc}
-        </span>
+        <div className="mt-1">
+          <span className="inline-block rounded bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+            {item.skill} DC {item.dc}
+          </span>
+        </div>
         {item.content && (
-          <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
             {item.content}
           </p>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Sortable Item Wrapper ────────────────────────────────────────────────────
+
+function SortableItem({
+  id,
+  index,
+  children,
+}: {
+  id: string
+  index: number
+  children: (handleRef: (el: Element | null) => void) => React.ReactNode
+}) {
+  const { ref, handleRef, isDragging } = useSortable({ id, index })
+
+  return (
+    <div ref={ref} style={{ opacity: isDragging ? 0.4 : 1 }}>
+      {children(handleRef)}
+    </div>
+  )
+}
+
+// ─── Inline Add Forms ─────────────────────────────────────────────────────────
+
+function AddSceneForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (item: SceneBlock) => void
+  onCancel: () => void
+}) {
+  const [textField, setTextField] = useState('')
+
+  function handleSubmit() {
+    if (!textField.trim()) return
+    onAdd({
+      kind: 'scene',
+      id: crypto.randomUUID(),
+      text: textField.trim(),
+    })
+  }
+
+  return (
+    <div className="rounded-lg border border-indigo-500/40 bg-card shadow-sm">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
+        <ScrollText className="size-3.5 text-indigo-500" />
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-500">
+          New Scene
+        </span>
+      </div>
+      <div className="space-y-2 p-3">
+        <Textarea
+          value={textField}
+          onChange={(e) => setTextField(e.target.value)}
+          placeholder="Describe the scene, setting, NPCs, and important details for players to know."
+          rows={10}
+        />
+      </div>
+      <div className="flex justify-end gap-2 border-t px-3 py-2">
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button size="sm" onClick={handleSubmit} disabled={!textField.trim()}>
+          Add Scene
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function AddEncounterForm({
+  lookupEntries,
+  onAdd,
+  onCancel,
+}: {
+  lookupEntries: Array<{ id: string; title: string; category: string }>
+  onAdd: (item: EncounterBlock) => void
+  onCancel: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const [customName, setCustomName] = useState('')
+  const [lookupId, setLookupId] = useState<string | null>(null)
+  const [count, setCount] = useState(1)
+  const [notes, setNotes] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return lookupEntries.slice(0, 20)
+    return lookupEntries
+      .filter(
+        (e) =>
+          e.title.toLowerCase().includes(q) ||
+          e.category.toLowerCase().includes(q),
+      )
+      .slice(0, 20)
+  }, [lookupEntries, search])
+
+  const selectedEntry = lookupId
+    ? lookupEntries.find((e) => e.id === lookupId)
+    : null
+
+  function handleSubmit() {
+    const name = selectedEntry?.title ?? customName.trim()
+    if (!name) return
+    onAdd({
+      kind: 'encounter',
+      id: crypto.randomUUID(),
+      monsterName: name,
+      monsterLookupId: lookupId ?? undefined,
+      notes: notes.trim(),
+      count: Math.max(1, count),
+    })
+  }
+
+  return (
+    <div className="rounded-lg border border-red-500/40 bg-card shadow-sm">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
+        <Swords className="size-3.5 text-red-500" />
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-red-500">
+          New Encounter
+        </span>
+      </div>
+      <div className="space-y-2 p-3">
+        {lookupEntries.length > 0 && (
+          <div className="space-y-1">
+            {selectedEntry ? (
+              <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
+                <div>
+                  <p className="text-sm font-medium">{selectedEntry.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedEntry.category}
+                  </p>
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-6 text-muted-foreground"
+                  onClick={() => {
+                    setLookupId(null)
+                    setSearch('')
+                  }}
+                >
+                  <Trash2 className="size-3" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setLookupId(null)
+                  }}
+                  placeholder="Search lookup entries…"
+                  autoFocus
+                />
+                {search.trim() && (
+                  <div className="max-h-36 overflow-y-auto rounded-md border">
+                    {filtered.length === 0 ? (
+                      <p className="p-3 text-xs text-muted-foreground">
+                        No entries found. Use custom name below.
+                      </p>
+                    ) : (
+                      filtered.map((entry) => (
+                        <button
+                          key={entry.id}
+                          className="w-full cursor-pointer px-3 py-2 text-left hover:bg-muted/60"
+                          onClick={() => {
+                            setLookupId(entry.id)
+                            setSearch(entry.title)
+                          }}
+                        >
+                          <p className="text-sm font-medium">{entry.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {entry.category}
+                          </p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {!lookupId && (
+          <Input
+            value={customName}
+            onChange={(e) => setCustomName(e.target.value)}
+            placeholder={
+              lookupEntries.length > 0 ? 'Or custom enemy name…' : 'Enemy name…'
+            }
+            autoFocus={lookupEntries.length === 0}
+          />
+        )}
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            Count
+          </label>
+          <Input
+            type="number"
+            min={1}
+            value={count}
+            onChange={(e) => setCount(Number(e.target.value))}
+            className="w-20"
+          />
+        </div>
+
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Tactics, conditions, triggers… (optional)"
+          rows={2}
+        />
+      </div>
+      <div className="flex justify-end gap-2 border-t px-3 py-2">
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleSubmit}
+          disabled={!selectedEntry && !customName.trim()}
+        >
+          Add Encounter
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function AddSecretForm({
+  onAdd,
+  onCancel,
+}: {
+  onAdd: (item: SecretBlock) => void
+  onCancel: () => void
+}) {
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [dc, setDc] = useState(10)
+  const [skill, setSkill] = useState('Perception')
+
+  function handleSubmit() {
+    if (!title.trim()) return
+    onAdd({
+      kind: 'secret',
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      content: content.trim(),
+      dc: Math.max(1, dc),
+      skill,
+    })
+  }
+
+  return (
+    <div className="rounded-lg border border-amber-500/40 bg-card shadow-sm">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
+        <EyeOff className="size-3.5 text-amber-500" />
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500">
+          New Secret
+        </span>
+      </div>
+      <div className="space-y-2 p-3">
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Secret title…"
+          autoFocus
+        />
+        <div className="flex gap-2">
+          <select
+            value={skill}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setSkill(e.target.value)
+            }
+            className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {DND_SKILLS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1.5">
+            <label className="text-sm font-medium text-muted-foreground">
+              DC
+            </label>
+            <Input
+              type="number"
+              min={1}
+              value={dc}
+              onChange={(e) => setDc(Number(e.target.value))}
+              className="w-20"
+            />
+          </div>
+        </div>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What players learn on a successful roll… (optional)"
+          rows={3}
+        />
+      </div>
+      <div className="flex justify-end gap-2 border-t px-3 py-2">
+        <Button size="sm" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button size="sm" onClick={handleSubmit} disabled={!title.trim()}>
+          Add Secret
+        </Button>
       </div>
     </div>
   )
@@ -234,106 +590,25 @@ export default function SessionDetailPage({
   )
 
   const lookupEntries = useCollection('lookupEntries', { campaignId })
-
   const [activeTab, setActiveTab] = useState<ViewTab>('builder')
-
-  // Dialog open states
-  const [sceneOpen, setSceneOpen] = useState(false)
-  const [encounterOpen, setEncounterOpen] = useState(false)
-  const [secretOpen, setSecretOpen] = useState(false)
-
-  // Scene form
-  const [sceneTitle, setSceneTitle] = useState('')
-  const [sceneBody, setSceneBody] = useState('')
-
-  // Encounter form
-  const [encounterSearch, setEncounterSearch] = useState('')
-  const [encounterCustomName, setEncounterCustomName] = useState('')
-  const [encounterLookupId, setEncounterLookupId] = useState<string | null>(null)
-  const [encounterCount, setEncounterCount] = useState(1)
-  const [encounterNotes, setEncounterNotes] = useState('')
-
-  // Secret form
-  const [secretTitle, setSecretTitle] = useState('')
-  const [secretContent, setSecretContent] = useState('')
-  const [secretDc, setSecretDc] = useState(10)
-  const [secretSkill, setSecretSkill] = useState('Perception')
+  const [addingKind, setAddingKind] = useState<AddingKind>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   const session = useMemo(
     () => sessionsState.sessions.find((s) => s.id === sessionId) ?? null,
     [sessionsState.sessions, sessionId],
   )
 
-  const filteredLookupEntries = useMemo(() => {
-    const q = encounterSearch.trim().toLowerCase()
-    if (!q) return lookupEntries.slice(0, 20)
-    return lookupEntries
-      .filter(
-        (e) =>
-          e.title.toLowerCase().includes(q) ||
-          e.category.toLowerCase().includes(q),
-      )
-      .slice(0, 20)
-  }, [lookupEntries, encounterSearch])
-
   function addItem(item: SessionPlanItem) {
     setPlan((prev) => ({ items: [...prev.items, item] }))
+    setAddingKind(null)
   }
 
   function deleteItem(id: string) {
     setPlan((prev) => ({ items: prev.items.filter((i) => i.id !== id) }))
   }
 
-  function handleAddScene() {
-    if (!sceneTitle.trim()) return
-    addItem({
-      kind: 'scene',
-      id: crypto.randomUUID(),
-      title: sceneTitle.trim(),
-      body: sceneBody.trim(),
-    })
-    setSceneTitle('')
-    setSceneBody('')
-    setSceneOpen(false)
-  }
-
-  function handleAddEncounter() {
-    const name = encounterLookupId
-      ? (lookupEntries.find((e) => e.id === encounterLookupId)?.title ?? encounterCustomName.trim())
-      : encounterCustomName.trim()
-    if (!name) return
-    addItem({
-      kind: 'encounter',
-      id: crypto.randomUUID(),
-      monsterName: name,
-      monsterLookupId: encounterLookupId ?? undefined,
-      notes: encounterNotes.trim(),
-      count: Math.max(1, encounterCount),
-    })
-    setEncounterSearch('')
-    setEncounterCustomName('')
-    setEncounterLookupId(null)
-    setEncounterCount(1)
-    setEncounterNotes('')
-    setEncounterOpen(false)
-  }
-
-  function handleAddSecret() {
-    if (!secretTitle.trim()) return
-    addItem({
-      kind: 'secret',
-      id: crypto.randomUUID(),
-      title: secretTitle.trim(),
-      content: secretContent.trim(),
-      dc: Math.max(1, secretDc),
-      skill: secretSkill,
-    })
-    setSecretTitle('')
-    setSecretContent('')
-    setSecretDc(10)
-    setSecretSkill('Perception')
-    setSecretOpen(false)
-  }
+  const activeItem = activeId ? plan.items.find((i) => i.id === activeId) : null
 
   if (!session) {
     return (
@@ -352,50 +627,44 @@ export default function SessionDetailPage({
     )
   }
 
-  const selectedLookupEntry = encounterLookupId
-    ? lookupEntries.find((e) => e.id === encounterLookupId)
-    : null
-
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div>
+      {/* Header + Tabs */}
+      <div className="flex items-center gap-3">
         <Link
           to="/campaigns/$campaignId/workspace/sessions"
           params={{ campaignId }}
         >
-          <Button variant="ghost" size="sm" className="-ml-2 mb-1 gap-1.5">
+          <Button variant="ghost" size="sm" className="-ml-2 gap-1.5">
             <ArrowLeft className="size-4" />
             Sessions
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold leading-snug">{session.title}</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Session #{session.sessionNumber} &middot;{' '}
-          {new Date(session.createdAt).toLocaleDateString()}
-        </p>
-      </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          const active = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex cursor-pointer items-center gap-1.5 border-b-2 px-3 pb-2 text-sm font-medium transition-colors duration-150 ${
-                active
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Icon className="size-3.5" />
-              {tab.label}
-            </button>
-          )
-        })}
+        <h1 className="min-w-0 flex-1 truncate text-base font-semibold">
+          {session.title}
+        </h1>
+
+        <div className="flex shrink-0 gap-1 rounded-lg border bg-muted/40 p-1">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            const active = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon className="size-3.5" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Builder tab */}
@@ -405,9 +674,11 @@ export default function SessionDetailPage({
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
-              variant="outline"
+              variant={addingKind === 'encounter' ? 'default' : 'outline'}
               className="gap-1.5"
-              onClick={() => setEncounterOpen(true)}
+              onClick={() =>
+                setAddingKind(addingKind === 'encounter' ? null : 'encounter')
+              }
             >
               <Swords className="size-3.5" />
               Encounter
@@ -415,9 +686,11 @@ export default function SessionDetailPage({
             </Button>
             <Button
               size="sm"
-              variant="outline"
+              variant={addingKind === 'scene' ? 'default' : 'outline'}
               className="gap-1.5"
-              onClick={() => setSceneOpen(true)}
+              onClick={() =>
+                setAddingKind(addingKind === 'scene' ? null : 'scene')
+              }
             >
               <ScrollText className="size-3.5" />
               Scene
@@ -425,9 +698,11 @@ export default function SessionDetailPage({
             </Button>
             <Button
               size="sm"
-              variant="outline"
+              variant={addingKind === 'secret' ? 'default' : 'outline'}
               className="gap-1.5"
-              onClick={() => setSecretOpen(true)}
+              onClick={() =>
+                setAddingKind(addingKind === 'secret' ? null : 'secret')
+              }
             >
               <EyeOff className="size-3.5" />
               Secret
@@ -435,302 +710,103 @@ export default function SessionDetailPage({
             </Button>
           </div>
 
-          {/* Plan item list */}
-          {plan.items.length === 0 ? (
-            <div className="rounded-lg border border-dashed py-12 text-center">
-              <p className="text-sm font-medium text-muted-foreground">
-                No plan items yet
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/60">
-                Add encounters, scenes, and secrets above to build your session.
-              </p>
+          {/* Sortable list */}
+          <DragDropProvider
+            onDragStart={(e) =>
+              setActiveId(String(e.operation.source?.id ?? ''))
+            }
+            onDragEnd={(event) => {
+              setActiveId(null)
+              if (event.canceled) return
+              if (!isSortableOperation(event.operation)) return
+              const { source, target } = event.operation
+              if (!source || !target) return
+              setPlan((prev) => ({
+                items: arrayMove(prev.items, source.initialIndex, target.index),
+              }))
+            }}
+          >
+            <div className="space-y-2">
+              {plan.items.map((item, index) => (
+                <SortableItem key={item.id} id={item.id} index={index}>
+                  {(handleRef) => {
+                    if (item.kind === 'scene') {
+                      return (
+                        <SceneCard
+                          item={item}
+                          onDelete={() => deleteItem(item.id)}
+                          handleRef={handleRef}
+                        />
+                      )
+                    }
+                    if (item.kind === 'encounter') {
+                      return (
+                        <EncounterCard
+                          item={item}
+                          onDelete={() => deleteItem(item.id)}
+                          handleRef={handleRef}
+                        />
+                      )
+                    }
+                    return (
+                      <SecretCard
+                        item={item}
+                        onDelete={() => deleteItem(item.id)}
+                        handleRef={handleRef}
+                      />
+                    )
+                  }}
+                </SortableItem>
+              ))}
+
+              {plan.items.length === 0 && !addingKind && (
+                <div className="rounded-lg border border-dashed py-12 text-center">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    No plan items yet
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground/60">
+                    Add encounters, scenes, and secrets above to build your
+                    session.
+                  </p>
+                </div>
+              )}
+
+              {/* Inline add forms */}
+              {addingKind === 'scene' && (
+                <AddSceneForm
+                  onAdd={addItem}
+                  onCancel={() => setAddingKind(null)}
+                />
+              )}
+              {addingKind === 'encounter' && (
+                <AddEncounterForm
+                  lookupEntries={lookupEntries}
+                  onAdd={addItem}
+                  onCancel={() => setAddingKind(null)}
+                />
+              )}
+              {addingKind === 'secret' && (
+                <AddSecretForm
+                  onAdd={addItem}
+                  onCancel={() => setAddingKind(null)}
+                />
+              )}
             </div>
-          ) : (
-            <div className="space-y-3">
-              {plan.items.map((item) => {
-                if (item.kind === 'scene') {
-                  return (
-                    <SceneCard
-                      key={item.id}
-                      item={item}
-                      onDelete={() => deleteItem(item.id)}
-                    />
-                  )
-                }
-                if (item.kind === 'encounter') {
-                  return (
-                    <EncounterCard
-                      key={item.id}
-                      item={item}
-                      onDelete={() => deleteItem(item.id)}
-                    />
-                  )
-                }
-                return (
-                  <SecretCard
-                    key={item.id}
-                    item={item}
-                    onDelete={() => deleteItem(item.id)}
-                  />
-                )
-              })}
-            </div>
-          )}
+
+            <DragOverlay>
+              {activeItem?.kind === 'scene' && <SceneCard item={activeItem} />}
+              {activeItem?.kind === 'encounter' && (
+                <EncounterCard item={activeItem} />
+              )}
+              {activeItem?.kind === 'secret' && (
+                <SecretCard item={activeItem} />
+              )}
+            </DragOverlay>
+          </DragDropProvider>
         </div>
       )}
 
       {activeTab === 'dm-screen' && <DmScreenPage campaignId={campaignId} />}
-
-      {/* Scene Dialog */}
-      <Dialog open={sceneOpen} onOpenChange={setSceneOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Scene</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-1">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="scene-title">
-                Title
-              </label>
-              <Input
-                id="scene-title"
-                value={sceneTitle}
-                onChange={(e) => setSceneTitle(e.target.value)}
-                placeholder="e.g. Opening: The Docks at Night"
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleAddScene()}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="scene-body">
-                Notes / Direction
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <Textarea
-                id="scene-body"
-                value={sceneBody}
-                onChange={(e) => setSceneBody(e.target.value)}
-                placeholder="Describe what happens, where the party is, what the goal of this scene is..."
-                rows={5}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setSceneOpen(false)}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleAddScene} disabled={!sceneTitle.trim()}>
-              Add Scene
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Encounter Dialog */}
-      <Dialog open={encounterOpen} onOpenChange={setEncounterOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Encounter</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-1">
-            {/* Monster selector */}
-            {lookupEntries.length > 0 ? (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  Monster / Enemy
-                </label>
-                <Input
-                  value={encounterSearch}
-                  onChange={(e) => {
-                    setEncounterSearch(e.target.value)
-                    setEncounterLookupId(null)
-                  }}
-                  placeholder="Search lookup entries..."
-                />
-                {selectedLookupEntry ? (
-                  <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium">{selectedLookupEntry.title}</p>
-                      <p className="text-xs text-muted-foreground">{selectedLookupEntry.category}</p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-6 text-muted-foreground"
-                      onClick={() => {
-                        setEncounterLookupId(null)
-                        setEncounterSearch('')
-                      }}
-                    >
-                      <Trash2 className="size-3" />
-                    </Button>
-                  </div>
-                ) : encounterSearch.trim() ? (
-                  <div className="max-h-40 overflow-y-auto rounded-md border">
-                    {filteredLookupEntries.length === 0 ? (
-                      <p className="p-3 text-xs text-muted-foreground">
-                        No entries found. Use custom name below.
-                      </p>
-                    ) : (
-                      filteredLookupEntries.map((entry) => (
-                        <button
-                          key={entry.id}
-                          className="w-full cursor-pointer px-3 py-2 text-left hover:bg-muted/60"
-                          onClick={() => {
-                            setEncounterLookupId(entry.id)
-                            setEncounterSearch(entry.title)
-                          }}
-                        >
-                          <p className="text-sm font-medium">{entry.title}</p>
-                          <p className="text-xs text-muted-foreground">{entry.category}</p>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* Custom name fallback */}
-            {!encounterLookupId && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="encounter-custom">
-                  {lookupEntries.length > 0 ? 'Or enter custom name' : 'Enemy name'}
-                </label>
-                <Input
-                  id="encounter-custom"
-                  value={encounterCustomName}
-                  onChange={(e) => setEncounterCustomName(e.target.value)}
-                  placeholder="e.g. Goblin, Bandit Captain, Custom Boss"
-                />
-              </div>
-            )}
-
-            {/* Count */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="encounter-count">
-                Count
-              </label>
-              <Input
-                id="encounter-count"
-                type="number"
-                min={1}
-                value={encounterCount}
-                onChange={(e) => setEncounterCount(Number(e.target.value))}
-                className="w-24"
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="encounter-notes">
-                Notes
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <Textarea
-                id="encounter-notes"
-                value={encounterNotes}
-                onChange={(e) => setEncounterNotes(e.target.value)}
-                placeholder="Tactics, special conditions, triggers..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setEncounterOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleAddEncounter}
-              disabled={!encounterLookupId && !encounterCustomName.trim()}
-            >
-              Add Encounter
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Secret Dialog */}
-      <Dialog open={secretOpen} onOpenChange={setSecretOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Secret</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-1">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="secret-title">
-                Title
-              </label>
-              <Input
-                id="secret-title"
-                value={secretTitle}
-                onChange={(e) => setSecretTitle(e.target.value)}
-                placeholder="e.g. The Spy's True Identity"
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="secret-skill">
-                  Skill
-                </label>
-                <select
-                  id="secret-skill"
-                  value={secretSkill}
-                  onChange={(e) => setSecretSkill(e.target.value)}
-                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  {DND_SKILLS.map((skill) => (
-                    <option key={skill} value={skill}>
-                      {skill}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="w-24 space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="secret-dc">
-                  DC
-                </label>
-                <Input
-                  id="secret-dc"
-                  type="number"
-                  min={1}
-                  value={secretDc}
-                  onChange={(e) => setSecretDc(Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="secret-content">
-                Secret Content
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  (revealed on successful roll)
-                </span>
-              </label>
-              <Textarea
-                id="secret-content"
-                value={secretContent}
-                onChange={(e) => setSecretContent(e.target.value)}
-                placeholder="What the players learn if they succeed..."
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setSecretOpen(false)}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleAddSecret} disabled={!secretTitle.trim()}>
-              Add Secret
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
