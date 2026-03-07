@@ -29,7 +29,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { DiceTray } from '@/features/dice-roller/components/dice-tray'
-import { DiceTrayTrigger } from '@/features/dice-roller/components/dice-tray-trigger'
 
 type LayoutBreadcrumbItem = {
   label: string
@@ -64,7 +63,7 @@ export function DmAppLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="relative">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
@@ -105,13 +104,8 @@ export function DmAppLayout({
         </header>
 
         <section className="flex flex-1 flex-col gap-4 p-4">{children}</section>
+        {shouldRenderDiceUi && isCampaignRoute ? <DiceTray /> : null}
       </SidebarInset>
-      {shouldRenderDiceUi && isCampaignRoute ? (
-        <>
-          <DiceTrayTrigger />
-          <DiceTray />
-        </>
-      ) : null}
     </SidebarProvider>
   )
 }

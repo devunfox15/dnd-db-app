@@ -1,29 +1,38 @@
 import { useEffect, useId, useRef, useState } from 'react'
-
+import type { DiceBoxConstructor, DiceBoxInstance } from '@3d-dice/dice-box'
 import type { PendingRoll } from '@/features/dice-roller/types'
 
-type DiceBoxLike = {
-  init: () => Promise<unknown>
-  roll: (notation: string, options?: Record<string, unknown>) => Promise<unknown>
-  clear?: () => void
-  onRollComplete?: (results: unknown) => void
+interface DiceRollGroup {
+  rolls?: Array<{ value: number; valid?: boolean }>
 }
+
+export const DICE_BOX_THEME = 'default'
+export const DICE_BOX_THEME_COLOR = '#000000'
+export const DICE_BOX_SCALE = 6
+export const DICE_CANVAS_HEIGHT_CLASS = 'absolute inset-0'
+export const DICE_BOX_THROW_FORCE = 2
+export const DICE_BOX_STARTING_HEIGHT = 3.5
+export const DICE_BOX_SIZE = 12
+export const DICE_BOX_RESTITUTION = 0.5
 
 interface DiceCanvasProps {
   pendingRoll: PendingRoll | null
   onPendingRollConsumed: () => void
-  onRollAnimationComplete: () => void
+  onRollAnimationComplete: (values: number[]) => void
 }
 
 function useDiceEngine(
   containerSelector: string,
   pendingRoll: PendingRoll | null,
   onPendingRollConsumed: () => void,
-  onRollAnimationComplete: () => void,
+  onRollAnimationComplete: (values: number[]) => void,
 ) {
-  const boxRef = useRef<DiceBoxLike | null>(null)
+  const boxRef = useRef<DiceBoxInstance | null>(null)
   const isInitialized = useRef(false)
   const [isReady, setIsReady] = useState(false)
+  // Stable ref so the init effect never re-runs when the callback changes identity
+  const onRollAnimationCompleteRef = useRef(onRollAnimationComplete)
+  onRollAnimationCompleteRef.current = onRollAnimationComplete
 
   useEffect(() => {
     if (isInitialized.current || typeof window === 'undefined') {
@@ -35,24 +44,46 @@ function useDiceEngine(
 
     void import('@3d-dice/dice-box')
       .then(async (module) => {
-        const DiceBox = module.default as new (
-          selector: string,
-          options: Record<string, unknown>,
-        ) => DiceBoxLike
+        const DiceBox = module.default as DiceBoxConstructor
         const box = new DiceBox(containerSelector, {
           assetPath: '/dice-box/',
           offscreen: true,
-          theme: 'default',
-          scale: 7,
+          theme: DICE_BOX_THEME,
+          themeColor: DICE_BOX_THEME_COLOR,
+          scale: DICE_BOX_SCALE,
+          throwForce: DICE_BOX_THROW_FORCE,
+          startingHeight: DICE_BOX_STARTING_HEIGHT,
+          size: DICE_BOX_SIZE,
           gravity: 2.8,
+          restitution: DICE_BOX_RESTITUTION,
         })
+
+        // dice-box creates a <canvas> with no size — browser defaults to 300×150.
+        // Set the HTML width/height attributes to match the container so the
+        // OffscreenCanvas gets the correct rendering buffer dimensions.
+        const container = document.querySelector(containerSelector)
+        const diceCanvas =
+          container?.querySelector<HTMLCanvasElement>('.dice-box-canvas')
+        if (diceCanvas && container) {
+          diceCanvas.width = container.clientWidth
+          diceCanvas.height = container.clientHeight
+        }
+
         await box.init()
 
         if (!isMounted) {
           return
         }
 
-        box.onRollComplete = () => onRollAnimationComplete()
+        box.onRollComplete = (results) => {
+          const values = (results as unknown as DiceRollGroup[]).flatMap(
+            (group) =>
+              (group.rolls ?? [])
+                .filter((r) => r.valid !== false)
+                .map((r) => r.value),
+          )
+          onRollAnimationCompleteRef.current(values)
+        }
         boxRef.current = box
         setIsReady(true)
       })
@@ -66,7 +97,7 @@ function useDiceEngine(
       isInitialized.current = false
       setIsReady(false)
     }
-  }, [containerSelector, onRollAnimationComplete])
+  }, [containerSelector])
 
   useEffect(() => {
     if (!pendingRoll || !boxRef.current) {
@@ -76,12 +107,12 @@ function useDiceEngine(
     void boxRef.current
       .roll(pendingRoll.notation, { targetValues: pendingRoll.targetValues })
       .catch(() => {
-        onRollAnimationComplete()
+        onRollAnimationCompleteRef.current([])
       })
       .finally(() => {
         onPendingRollConsumed()
       })
-  }, [onPendingRollConsumed, onRollAnimationComplete, pendingRoll])
+  }, [onPendingRollConsumed, pendingRoll])
 
   return { isReady }
 }
@@ -105,12 +136,10 @@ export function DiceCanvas({
       id={containerId}
       role="img"
       aria-label="3D dice rolling area"
-      className="relative h-[320px] overflow-hidden rounded border bg-gradient-to-b from-slate-200/35 via-slate-300/25 to-slate-500/10 dark:from-slate-800/80 dark:via-slate-900/60 dark:to-black/70"
+      className={`${DICE_CANVAS_HEIGHT_CLASS} overflow-hidden `}
     >
       {!isReady ? (
-        <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-          Loading dice engine...
-        </div>
+        <div className="flex h-full items-center justify-center text-xs text-muted-foreground"></div>
       ) : null}
     </div>
   )

@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RpgsRouteImport } from './routes/rpgs'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RpgsIndexRouteImport } from './routes/rpgs.index'
 import { Route as CampaignsIndexRouteImport } from './routes/campaigns.index'
+import { Route as RpgsDndRouteImport } from './routes/rpgs.dnd'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 import { Route as CampaignsCampaignIdIndexRouteImport } from './routes/campaigns.$campaignId.index'
 import { Route as CampaignsCampaignIdWorkspaceRouteImport } from './routes/campaigns.$campaignId.workspace'
@@ -46,10 +48,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RpgsIndexRoute = RpgsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RpgsRoute,
+} as any)
 const CampaignsIndexRoute = CampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CampaignsRoute,
+} as any)
+const RpgsDndRoute = RpgsDndRouteImport.update({
+  id: '/dnd',
+  path: '/dnd',
+  getParentRoute: () => RpgsRoute,
 } as any)
 const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
   id: '/$campaignId',
@@ -156,9 +168,11 @@ const CampaignsCampaignIdWorkspaceSessionsSessionIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
-  '/rpgs': typeof RpgsRoute
+  '/rpgs': typeof RpgsRouteWithChildren
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
+  '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns/': typeof CampaignsIndexRoute
+  '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
@@ -178,8 +192,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/rpgs': typeof RpgsRoute
+  '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns': typeof CampaignsIndexRoute
+  '/rpgs': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
@@ -199,9 +214,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
-  '/rpgs': typeof RpgsRoute
+  '/rpgs': typeof RpgsRouteWithChildren
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
+  '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns/': typeof CampaignsIndexRoute
+  '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
@@ -226,7 +243,9 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/rpgs'
     | '/campaigns/$campaignId'
+    | '/rpgs/dnd'
     | '/campaigns/'
+    | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
@@ -246,8 +265,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/rpgs'
+    | '/rpgs/dnd'
     | '/campaigns'
+    | '/rpgs'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
@@ -268,7 +288,9 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/rpgs'
     | '/campaigns/$campaignId'
+    | '/rpgs/dnd'
     | '/campaigns/'
+    | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
@@ -290,7 +312,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CampaignsRoute: typeof CampaignsRouteWithChildren
-  RpgsRoute: typeof RpgsRoute
+  RpgsRoute: typeof RpgsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -316,12 +338,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rpgs/': {
+      id: '/rpgs/'
+      path: '/'
+      fullPath: '/rpgs/'
+      preLoaderRoute: typeof RpgsIndexRouteImport
+      parentRoute: typeof RpgsRoute
+    }
     '/campaigns/': {
       id: '/campaigns/'
       path: '/'
       fullPath: '/campaigns/'
       preLoaderRoute: typeof CampaignsIndexRouteImport
       parentRoute: typeof CampaignsRoute
+    }
+    '/rpgs/dnd': {
+      id: '/rpgs/dnd'
+      path: '/dnd'
+      fullPath: '/rpgs/dnd'
+      preLoaderRoute: typeof RpgsDndRouteImport
+      parentRoute: typeof RpgsRoute
     }
     '/campaigns/$campaignId': {
       id: '/campaigns/$campaignId'
@@ -538,10 +574,22 @@ const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
   CampaignsRouteChildren,
 )
 
+interface RpgsRouteChildren {
+  RpgsDndRoute: typeof RpgsDndRoute
+  RpgsIndexRoute: typeof RpgsIndexRoute
+}
+
+const RpgsRouteChildren: RpgsRouteChildren = {
+  RpgsDndRoute: RpgsDndRoute,
+  RpgsIndexRoute: RpgsIndexRoute,
+}
+
+const RpgsRouteWithChildren = RpgsRoute._addFileChildren(RpgsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CampaignsRoute: CampaignsRouteWithChildren,
-  RpgsRoute: RpgsRoute,
+  RpgsRoute: RpgsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

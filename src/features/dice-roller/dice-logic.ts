@@ -7,6 +7,7 @@ const dieSidesByType: Record<DieType, number> = {
   d10: 10,
   d12: 12,
   d20: 20,
+  d100: 100,
 }
 
 export interface ParsedNotation {
@@ -44,11 +45,19 @@ function normalizeModifier(modifier: number): number {
 }
 
 function isDieType(value: string): value is DieType {
-  return value === 'd4' || value === 'd6' || value === 'd8' || value === 'd10' || value === 'd12' || value === 'd20'
+  return (
+    value === 'd4' ||
+    value === 'd6' ||
+    value === 'd8' ||
+    value === 'd10' ||
+    value === 'd12' ||
+    value === 'd20' ||
+    value === 'd100'
+  )
 }
 
 export function parseNotation(notation: string): ParsedNotation {
-  const match = notation.trim().match(/^(\d+)(d4|d6|d8|d10|d12|d20)([+-]\d+)?$/i)
+  const match = notation.trim().match(/^(\d+)(d4|d6|d8|d10|d12|d20|d100)([+-]\d+)?$/i)
   if (!match) {
     throw new Error(`Invalid notation: ${notation}`)
   }

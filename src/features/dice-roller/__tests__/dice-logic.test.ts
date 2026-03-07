@@ -25,6 +25,14 @@ describe('dice logic', () => {
     })
   })
 
+  it('parses d100 notation', () => {
+    expect(parseNotation('2d100+1')).toEqual({
+      dieType: 'd100',
+      count: 2,
+      modifier: 1,
+    })
+  })
+
   it('formats notation text', () => {
     expect(toNotation('d8', 2, 3)).toBe('2d8+3')
     expect(toNotation('d8', 2, 0)).toBe('2d8')

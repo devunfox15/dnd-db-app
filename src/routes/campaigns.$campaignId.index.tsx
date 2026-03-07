@@ -9,7 +9,7 @@ function RouteComponent() {
 
   return (
     <Navigate
-      to="/campaigns/$campaignId/workspace/scene-notes"
+      to="/campaigns/$campaignId/workspace/sessions"
       params={{ campaignId }}
       replace
     />

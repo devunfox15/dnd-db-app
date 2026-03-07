@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Dices } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import {
   buildDiceRoll,
   formatRollAnnouncement,
@@ -18,16 +12,18 @@ import {
 import { DiceCanvas } from '@/features/dice-roller/components/dice-canvas'
 import { DiceSelector } from '@/features/dice-roller/components/dice-selector'
 import { NatTwentyOverlay } from '@/features/dice-roller/components/nat-twenty-overlay'
-import { RollHistory } from '@/features/dice-roller/components/roll-history'
 import { diceRollerRepository } from '@/features/dice-roller/repository'
-import { playRollSound, playSettleSound } from '@/features/dice-roller/sound-manager'
+import {
+  playRollSound,
+  playSettleSound,
+} from '@/features/dice-roller/sound-manager'
 import {
   useDiceTrayOpen,
   useIsRolling,
   usePendingRoll,
   useRollHistory,
 } from '@/features/dice-roller/store'
-import type { DieType } from '@/features/dice-roller/types'
+import type { DiceRoll, DieType } from '@/features/dice-roller/types'
 import { useActiveCampaignId } from '@/features/core/store'
 
 interface InFlightRoll {
@@ -44,13 +40,17 @@ export function DiceTray() {
   const isRolling = useIsRolling()
   const pendingRoll = usePendingRoll()
   const rollHistory = useRollHistory(campaignId)
-  const [dieType, setDieType] = useState<DieType>('d20')
-  const [count, setCount] = useState(1)
-  const [modifier, setModifier] = useState(0)
+  const [dieType, setDieType] = useState<DieType | null>(null)
+  const [count, setCount] = useState(0)
+  const modifier = 0
   const [announcement, setAnnouncement] = useState('')
   const [natTwentyTriggerCount, setNatTwentyTriggerCount] = useState(0)
+  const [lastRoll, setLastRoll] = useState<DiceRoll | null>(null)
+  const [resultVisible, setResultVisible] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
   const inFlightRollRef = useRef<InFlightRoll | null>(null)
   const settleTimeoutRef = useRef<number | null>(null)
+  const resultTimeoutRef = useRef<number | null>(null)
 
   const clearSettleTimeout = useCallback(() => {
     if (settleTimeoutRef.current !== null) {
@@ -59,7 +59,7 @@ export function DiceTray() {
     }
   }, [])
 
-  const finalizeRoll = useCallback(() => {
+  const finalizeRoll = useCallback((actualValues?: number[]) => {
     const inFlight = inFlightRollRef.current
     if (!inFlight) {
       return
@@ -72,7 +72,9 @@ export function DiceTray() {
         count: inFlight.count,
         modifier: inFlight.modifier,
       },
-      inFlight.targetValues,
+      actualValues && actualValues.length > 0
+        ? actualValues
+        : inFlight.targetValues,
     )
     diceRollerRepository.addRoll(completedRoll)
     diceRollerRepository.setRolling(false)
@@ -83,12 +85,25 @@ export function DiceTray() {
       setNatTwentyTriggerCount((value) => value + 1)
     }
 
+    setLastRoll(completedRoll)
+    setResultVisible(true)
+    if (resultTimeoutRef.current !== null) {
+      window.clearTimeout(resultTimeoutRef.current)
+    }
+    resultTimeoutRef.current = window.setTimeout(() => {
+      setResultVisible(false)
+      resultTimeoutRef.current = window.setTimeout(() => {
+        setLastRoll(null)
+        resultTimeoutRef.current = null
+      }, 300)
+    }, 6000)
+
     inFlightRollRef.current = null
     clearSettleTimeout()
   }, [clearSettleTimeout])
 
   const handleRoll = useCallback(() => {
-    if (!campaignId || isRolling) {
+    if (!campaignId || isRolling || !dieType || count < 1) {
       return
     }
 
@@ -120,67 +135,179 @@ export function DiceTray() {
     settleTimeoutRef.current = window.setTimeout(() => {
       finalizeRoll()
     }, 8000)
-  }, [campaignId, clearSettleTimeout, count, dieType, finalizeRoll, isRolling, modifier])
+  }, [
+    campaignId,
+    clearSettleTimeout,
+    count,
+    dieType,
+    finalizeRoll,
+    isRolling,
+    modifier,
+  ])
 
   useEffect(() => {
     return () => {
       clearSettleTimeout()
       inFlightRollRef.current = null
+      if (resultTimeoutRef.current !== null) {
+        window.clearTimeout(resultTimeoutRef.current)
+      }
     }
   }, [clearSettleTimeout])
 
-  const lastRoll = rollHistory[0] ?? null
-  const canRoll = Boolean(campaignId) && !isRolling
+  const canRoll =
+    Boolean(campaignId) && !isRolling && Boolean(dieType) && count > 0
+  const showOverlay = isOpen || isRolling || pendingRoll !== null
+
+  const handleDieClick = useCallback(
+    (die: DieType) => {
+      if (dieType === die) {
+        setCount((value) => Math.min(9, value + 1))
+        return
+      }
+
+      setDieType(die)
+      setCount(1)
+    },
+    [dieType],
+  )
+
+  const handleReset = useCallback(() => {
+    setDieType(null)
+    setCount(0)
+  }, [])
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => diceRollerRepository.setOpen(open)}>
-      <SheetContent side="bottom" className="h-[90vh] max-h-[90vh]">
-        <SheetHeader className="pb-3">
-          <SheetTitle>Dice Roller</SheetTitle>
-          <SheetDescription>3D tray for campaign-scoped rolls.</SheetDescription>
-        </SheetHeader>
-
-        <div className="flex min-h-0 flex-1 flex-col gap-3 px-6 pb-6">
-          <DiceSelector
-            selectedDie={dieType}
-            count={count}
-            modifier={modifier}
-            onDieChange={setDieType}
-            onCountChange={setCount}
-            onModifierChange={setModifier}
-          />
-
-          <div className="relative">
+    <>
+      {showOverlay ? (
+        <div className="pointer-events-none absolute inset-0 z-30">
+          <div className="absolute inset-0 bg-transparent">
             <DiceCanvas
               pendingRoll={pendingRoll}
-              onPendingRollConsumed={() => diceRollerRepository.setPendingRoll(null)}
+              onPendingRollConsumed={() =>
+                diceRollerRepository.setPendingRoll(null)
+              }
               onRollAnimationComplete={finalizeRoll}
             />
             <NatTwentyOverlay triggerCount={natTwentyTriggerCount} />
           </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded border bg-muted/25 p-3">
-            <div className="min-w-0">
-              <p className="text-xs font-medium">
-                {lastRoll
-                  ? `Result ${lastRoll.results.join(', ')} | Total ${lastRoll.total}`
-                  : 'No result yet'}
-              </p>
-              <p className="text-[0.625rem] text-muted-foreground">
-                {campaignId ? `Campaign ${campaignId}` : 'Open a campaign to roll dice'}
-              </p>
-            </div>
-            <Button type="button" disabled={!canRoll} onClick={handleRoll}>
-              {isRolling ? 'Rolling...' : `Roll ${toNotation(dieType, count, modifier)}`}
-            </Button>
-          </div>
-
-          <RollHistory rolls={rollHistory} />
-          <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-            {announcement}
-          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      ) : null}
+
+      <div className="pointer-events-auto absolute left-6 bottom-6 z-40 flex flex-col items-start gap-2">
+        {isOpen ? (
+          <DiceSelector
+            selectedDie={dieType}
+            count={count}
+            onDieClick={handleDieClick}
+            onReset={handleReset}
+            onRoll={handleRoll}
+            canRoll={canRoll}
+            isRolling={isRolling}
+          />
+        ) : null}
+        <Button
+          type="button"
+          size="icon-lg"
+          className="rounded-full shadow-lg "
+          aria-label="Toggle dice popover"
+          aria-pressed={isOpen}
+          onClick={() => diceRollerRepository.setOpen(!isOpen)}
+        >
+          <Dices />
+        </Button>
+      </div>
+
+      {rollHistory.length > 0 || lastRoll ? (
+        <div className="pointer-events-auto absolute right-6 bottom-6 z-40 flex flex-col items-end gap-1.5">
+          {logOpen ? (
+            <div className="w-64 max-h-72 overflow-y-auto rounded-xl border border-border bg-background/95 backdrop-blur-sm shadow-lg flex flex-col">
+              <p className="sticky top-0 bg-background/95 px-3 pt-3 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide border-b border-border">
+                Roll Log
+              </p>
+              <div className="flex flex-col divide-y divide-border">
+                {rollHistory.map((roll) => (
+                  <div key={roll.id} className="flex items-center justify-between px-3 py-2 gap-3">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {roll.notation}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/60">
+                        {new Date(roll.rolledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {roll.isNatTwenty ? (
+                        <span className="text-[10px] font-semibold text-yellow-400 uppercase">Nat 20</span>
+                      ) : roll.isNatOne ? (
+                        <span className="text-[10px] font-semibold text-red-400 uppercase">Nat 1</span>
+                      ) : null}
+                      <span className={`text-base font-bold tabular-nums ${roll.isNatTwenty ? 'text-yellow-300' : roll.isNatOne ? 'text-red-300' : 'text-foreground'}`}>
+                        {roll.total}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {lastRoll ? (
+            <div className={`transition-opacity duration-300 ${resultVisible ? 'opacity-100' : 'opacity-0'}`}>
+              <div
+                className={`rounded-xl border shadow-lg p-4 min-w-32 text-center backdrop-blur-sm ${lastRoll.isNatTwenty ? 'border-yellow-400/60 bg-yellow-950/80' : lastRoll.isNatOne ? 'border-red-400/60 bg-red-950/80' : 'border-border bg-background/90'}`}
+              >
+                <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
+                  {lastRoll.notation}
+                </p>
+                {lastRoll.results.length > 1 ? (
+                  <div className="flex flex-wrap gap-1 justify-center mb-2">
+                    {lastRoll.results.map((value, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-muted text-xs font-mono font-semibold"
+                      >
+                        {value}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <p
+                  className={`text-3xl font-bold tabular-nums leading-none ${lastRoll.isNatTwenty ? 'text-yellow-300' : lastRoll.isNatOne ? 'text-red-300' : 'text-foreground'}`}
+                >
+                  {lastRoll.total}
+                </p>
+                {lastRoll.isNatTwenty ? (
+                  <p className="mt-1.5 text-xs font-semibold text-yellow-400 uppercase tracking-wider">
+                    Nat 20!
+                  </p>
+                ) : lastRoll.isNatOne ? (
+                  <p className="mt-1.5 text-xs font-semibold text-red-400 uppercase tracking-wider">
+                    Nat 1
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setLogOpen((v) => !v)}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted"
+          >
+            {logOpen ? 'Hide log' : 'Show log'}
+          </button>
+        </div>
+      ) : null}
+
+      <div
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {announcement}
+      </div>
+    </>
   )
 }
