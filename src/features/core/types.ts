@@ -153,8 +153,12 @@ export interface PlayerCharacterInventoryItem {
   name: string
   quantity: number
   equipped: boolean
+  isAttuned?: boolean
   type?: string
+  subtype?: string
+  rarity?: string
   detail?: string
+  properties?: string[]
   container?: string
 }
 

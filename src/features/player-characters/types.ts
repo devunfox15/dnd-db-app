@@ -12,6 +12,34 @@ export interface DndBeyondClass {
   }
 }
 
+export interface DndBeyondNamedDescription {
+  name?: string
+  description?: string
+}
+
+export interface DndBeyondInventoryProperty {
+  name?: string
+  notes?: string | null
+}
+
+export interface DndBeyondChoiceOption {
+  label?: string
+  description?: string | null
+}
+
+export interface DndBeyondChoice {
+  label?: string
+  options?: DndBeyondChoiceOption[]
+}
+
+export interface DndBeyondFeatureChoiceGroups {
+  race?: DndBeyondChoice[]
+  class?: DndBeyondChoice[]
+  background?: DndBeyondChoice[]
+  item?: DndBeyondChoice[]
+  feat?: DndBeyondChoice[]
+}
+
 export interface DndBeyondModifier {
   type?: string
   subType?: string
@@ -57,6 +85,11 @@ export interface DndBeyondCharacterResponse {
     bonusHitPoints?: number
     overrideHitPoints?: number | null
     removedHitPoints?: number
+    alignmentId?: number | null
+    lifestyleId?: number | null
+    lifestyle?: {
+      name?: string
+    } | null
     armorClass?: number
     initiative?: number
     currencies?: {
@@ -121,14 +154,50 @@ export interface DndBeyondCharacterResponse {
       id?: number | string
       quantity?: number
       equipped?: boolean
+      isAttuned?: boolean
       containerEntityId?: number | string | null
       definition?: {
         name?: string
         type?: string
+        subType?: string | null
+        filterType?: string | null
+        rarity?: string | null
+        description?: string | null
+        cost?: number | null
+        weight?: number | null
+        tags?: string[]
+        isContainer?: boolean
+        canAttune?: boolean
         damageType?: string | null
         damage?: { diceString?: string } | null
         armorClass?: number | null
+        properties?: DndBeyondInventoryProperty[] | null
       }
+    }>
+    feats?: Array<{
+      definition?: DndBeyondNamedDescription
+    }>
+    features?: Array<{
+      definition?: DndBeyondNamedDescription
+    }>
+    options?: {
+      race?: Array<{ definition?: DndBeyondNamedDescription }>
+      class?: Array<{ definition?: DndBeyondNamedDescription }>
+      background?: Array<{ definition?: DndBeyondNamedDescription }>
+      item?: Array<{ definition?: DndBeyondNamedDescription }>
+      feat?: Array<{ definition?: DndBeyondNamedDescription }>
+    }
+    choices?: DndBeyondFeatureChoiceGroups & {
+      choiceDefinitions?: unknown[]
+      definitionKeyNameMap?: Record<string, string>
+    }
+    customSenses?: Array<{
+      name?: string
+      distance?: number
+    }>
+    customSpeeds?: Array<{
+      name?: string
+      distance?: number
     }>
     classSpells?: Array<{
       spells?: DndBeyondSpellEntry[]

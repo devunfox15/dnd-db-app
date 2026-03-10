@@ -1,7 +1,7 @@
 import { useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { appRepository, useAppState } from '@/features/core/store'
 import type {
@@ -187,7 +187,7 @@ function RichText({
   return (
     <div
       className={`text-[11px] leading-5 text-stone-300 [&_a]:text-amber-300 [&_a]:underline [&_em]:italic [&_li]:ml-4 [&_li]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal [&_p+ul]:mt-2 [&_p]:mb-2 [&_strong]:font-semibold [&_table]:mt-2 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-stone-800/60 [&_td]:p-1.5 [&_th]:border [&_th]:border-stone-800/60 [&_th]:bg-stone-900/70 [&_th]:p-1.5 [&_tr:nth-child(even)]:bg-stone-900/30 [&_ul]:ml-4 [&_ul]:list-disc ${className}`}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}
     />
   )
 }
@@ -608,14 +608,41 @@ function InventoryList({ values }: { values: PlayerCharacterInventoryItem[] }) {
                 Equipped
               </span>
             ) : null}
+            {entry.isAttuned ? (
+              <span className="rounded border border-violet-900/50 px-1.5 py-0.5 text-[9px] uppercase text-violet-300">
+                Attuned
+              </span>
+            ) : null}
             {entry.type ? (
               <span className="text-[10px] text-stone-500">{entry.type}</span>
+            ) : null}
+            {entry.subtype ? (
+              <span className="text-[10px] text-stone-500">
+                {entry.subtype}
+              </span>
+            ) : null}
+            {entry.rarity ? (
+              <span className="rounded border border-amber-900/50 px-1.5 py-0.5 text-[9px] uppercase text-amber-300">
+                {entry.rarity}
+              </span>
             ) : null}
           </div>
           <div className="mt-1 flex flex-wrap gap-3 text-[10px] text-stone-500">
             {entry.detail ? <span>{entry.detail}</span> : null}
             {entry.container ? <span>Container: {entry.container}</span> : null}
           </div>
+          {entry.properties?.length ? (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {entry.properties.map((property) => (
+                <span
+                  key={`${entry.name}-${property}`}
+                  className="rounded border border-stone-700/60 px-1.5 py-0.5 text-[9px] text-stone-400"
+                >
+                  {property}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
@@ -632,6 +659,7 @@ export default function WorkspacePlayerDetailPage({
   const state = useAppState()
   const [isPending, startTransition] = useTransition()
   const [refreshError, setRefreshError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState('actions')
 
   const character = state.playerCharacters.find(
     (entry) =>
@@ -900,11 +928,15 @@ export default function WorkspacePlayerDetailPage({
 
         {/* Main Tabbed Content */}
         <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <Tabs defaultValue="actions" className="flex h-full flex-col">
-            <div className="flex-shrink-0 border-b border-amber-900/40 bg-stone-950 px-4 pt-3">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex h-full flex-col"
+          >
+            <div className="shrink-0 border-b border-amber-900/40 bg-stone-950 px-4 pt-3">
               <TabsList
                 variant="line"
-                className="h-auto w-full justify-start rounded-none bg-transparent"
+                className="h-auto w-full flex-wrap justify-start rounded-none bg-transparent"
               >
                 {[
                   { value: 'actions', label: 'Actions' },
@@ -916,7 +948,7 @@ export default function WorkspacePlayerDetailPage({
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className="rounded-none border-b-2 border-transparent bg-transparent px-3 py-2 text-xs font-semibold text-stone-500 hover:text-stone-300 data-active:border-amber-600 data-active:text-amber-300"
+                    className="flex-none rounded-none border-b-2 border-transparent bg-transparent px-3 py-2 text-xs font-semibold text-stone-500 hover:text-stone-300 data-active:border-amber-600 data-active:text-amber-300"
                   >
                     {label}
                   </TabsTrigger>
@@ -932,17 +964,11 @@ export default function WorkspacePlayerDetailPage({
               <SpellList values={sheet.spells} />
             </TabsContent>
 
-            <TabsContent
-              value="features"
-              className="flex-1 overflow-y-auto p-4"
-            >
+            <TabsContent value="features" className="flex-1 overflow-y-auto p-4">
               <FeatureList values={sheet.featuresAndTraits} />
             </TabsContent>
 
-            <TabsContent
-              value="inventory"
-              className="flex-1 overflow-y-auto p-4"
-            >
+            <TabsContent value="inventory" className="flex-1 overflow-y-auto p-4">
               <InventoryList values={sheet.inventory} />
             </TabsContent>
 

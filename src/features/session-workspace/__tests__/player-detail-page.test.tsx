@@ -103,8 +103,18 @@ describe('Workspace player detail page', () => {
               name: 'Longbow',
               quantity: 1,
               equipped: true,
+              isAttuned: true,
               type: 'Weapon',
+              rarity: 'Uncommon',
               detail: '1d8 Piercing',
+              properties: ['Ammunition', 'Heavy'],
+            },
+            {
+              name: 'Potion of Healing',
+              quantity: 2,
+              equipped: false,
+              type: 'Potion',
+              container: 'Backpack',
             },
           ],
           background: {
@@ -155,34 +165,28 @@ describe('Workspace player detail page', () => {
     resetRepositoryStateForTests(state)
   })
 
-  it('renders the expanded imported D&D Beyond sections', () => {
+  it('renders the tabbed player detail page with only the active panel content mounted', () => {
     const markup = renderToStaticMarkup(
       <PlayerDetailPage campaignId="campaign-1" playerCharacterId="pc-1" />
     )
 
-    expect(markup).toContain('Proficiency')
+    expect(markup).toContain('Prof Bonus')
     expect(markup).toContain('Senses')
-    expect(markup).toContain('Proficiencies &amp; Training')
     expect(markup).toContain('Actions')
     expect(markup).toContain('Features &amp; Traits')
-    expect(markup).toContain('Background')
-    expect(markup).toContain('Extra')
+    expect(markup).toContain('Background &amp; Notes')
     expect(markup).toContain('Darkvision')
-    expect(markup).toContain('Simple Weapons')
     expect(markup).toContain('Sneak Attack')
-    expect(markup).toContain('Hunter&#x27;s Mark')
-    expect(markup).toContain('Fey Ancestry')
-    expect(markup).toContain('Artisan')
-    expect(markup).toContain('The Great One')
-    expect(markup).toContain('Deep purple')
     expect(markup).toContain('Poisoned')
     expect(markup).toContain('Track concentration.')
     expect(markup).toContain('<strong>Deal</strong>')
     expect(markup).toContain('<ul>')
-    expect(markup).toContain('<th style="color: #f00">')
-    expect(markup).toContain('&ldquo;Exiled heir&rdquo;')
-    expect(markup).toContain('https://www.dndbeyond.com/search?q=Guidance&amp;f=spells')
-    expect(markup).toContain('>Guidance</a>')
+    expect(markup).not.toContain('Hunter&#x27;s Mark')
+    expect(markup).not.toContain('Fey Ancestry')
+    expect(markup).not.toContain('Artisan')
+    expect(markup).not.toContain('The Great One')
+    expect(markup).not.toContain('Deep purple')
+    expect(markup).not.toContain('Proficiencies &amp; Training')
     expect(markup).not.toContain('<script>')
   })
 })

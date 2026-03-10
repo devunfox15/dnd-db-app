@@ -23,6 +23,8 @@ function createPayload() {
       currentHitPoints: 32,
       temporaryHitPoints: 5,
       baseHitPoints: 38,
+      bonusHitPoints: 4,
+      removedHitPoints: 10,
       armorClass: 16,
       initiative: 3,
       currencies: {
@@ -67,6 +69,11 @@ function createPayload() {
                 description: 'You have significant experience studying a type of enemy.',
                 requiredLevel: 1,
               },
+              {
+                name: 'Vanish',
+                description: 'Hide as a bonus action.',
+                requiredLevel: 14,
+              },
             ],
           },
         },
@@ -97,18 +104,84 @@ function createPayload() {
           id: 1,
           quantity: 1,
           equipped: true,
+          isAttuned: true,
           definition: {
             name: 'Longbow',
             type: 'Weapon',
+            rarity: 'Uncommon',
+            subType: 'Martial Weapon',
             damageType: 'Piercing',
             damage: { diceString: '1d8' },
+            properties: [{ name: 'Ammunition' }, { name: 'Heavy' }],
           },
         },
         {
           id: 2,
           quantity: 2,
           equipped: false,
+          containerEntityId: 3,
           definition: { name: 'Potion of Healing', type: 'Potion' },
+        },
+        {
+          id: 3,
+          quantity: 1,
+          equipped: false,
+          definition: { name: 'Backpack', type: 'Gear', isContainer: true },
+        },
+      ],
+      feats: [
+        {
+          definition: {
+            name: 'Dark Bargain',
+            description: 'Accept a dangerous supernatural gift.',
+          },
+        },
+      ],
+      options: {
+        race: [
+          {
+            definition: {
+              name: 'High Elf Lineage',
+              description: 'An awakened elven magical lineage.',
+            },
+          },
+        ],
+        class: [],
+        background: [],
+        item: [],
+        feat: [],
+      },
+      choices: {
+        race: [
+          {
+            label: 'High Elf - Intelligence',
+            options: [
+              {
+                label: 'High Elf - Intelligence',
+                description: 'Your lineage spells use Intelligence.',
+              },
+            ],
+          },
+        ],
+        class: [],
+        background: [],
+        item: [],
+        feat: [],
+        choiceDefinitions: [],
+        definitionKeyNameMap: {},
+      },
+      customSenses: [
+        {
+          senseId: 4,
+          name: 'Tremorsense',
+          distance: 10,
+        },
+      ],
+      customSpeeds: [
+        {
+          movementId: 4,
+          name: 'Climb',
+          distance: 20,
         },
       ],
       spells: {
@@ -372,7 +445,7 @@ describe('player character import service helpers', () => {
     expect(mapped.classSummary).toBe('Ranger 5 / Rogue 1')
     expect(mapped.level).toBe(6)
     expect(mapped.currentHp).toBe(32)
-    expect(mapped.maxHp).toBe(38)
+    expect(mapped.maxHp).toBe(42)
     expect(mapped.tempHp).toBe(5)
     expect(mapped.speed).toBe(35)
     expect(mapped.abilityScores.dex).toBe(16)
@@ -385,7 +458,11 @@ describe('player character import service helpers', () => {
       'Cure Wounds',
     ])
     expect(mapped.sheet.proficiencyBonus).toBe(3)
-    expect(mapped.sheet.senses).toEqual([{ label: 'Darkvision', value: '60 ft' }])
+    expect(mapped.sheet.senses).toEqual([
+      { label: 'Darkvision', value: '60 ft' },
+      { label: 'Tremorsense', value: '10 ft' },
+    ])
+    expect(mapped.sheet.speed).toContainEqual({ label: 'Climb', value: '20 ft' })
     expect(mapped.sheet.savingThrows.find((entry) => entry.ability === 'wis')).toMatchObject({
       ability: 'wis',
       proficient: true,
@@ -431,11 +508,36 @@ describe('player character import service helpers', () => {
     expect(mapped.sheet.featuresAndTraits.some((entry) => entry.name === 'Favored Enemy')).toBe(
       true
     )
+    expect(mapped.sheet.featuresAndTraits.some((entry) => entry.name === 'Vanish')).toBe(false)
     expect(mapped.sheet.featuresAndTraits.some((entry) => entry.name === 'Crafter')).toBe(true)
+    expect(mapped.sheet.featuresAndTraits).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Dark Bargain',
+          source: 'Feat',
+          description: 'Accept a dangerous supernatural gift.',
+        }),
+        expect.objectContaining({
+          name: 'High Elf Lineage',
+          source: 'Option',
+        }),
+        expect.objectContaining({
+          name: 'High Elf - Intelligence',
+          source: 'Choice',
+        }),
+      ])
+    )
     expect(mapped.sheet.inventory[0]).toMatchObject({
       name: 'Longbow',
       quantity: 1,
       equipped: true,
+      isAttuned: true,
+      rarity: 'Uncommon',
+      properties: ['Ammunition', 'Heavy'],
+      container: undefined,
+    })
+    expect(mapped.sheet.inventory.find((entry) => entry.name === 'Potion of Healing')).toMatchObject({
+      container: 'Backpack',
     })
     expect(mapped.sheet.background).toMatchObject({
       name: 'Artisan',
@@ -452,6 +554,23 @@ describe('player character import service helpers', () => {
       gp: 47,
     })
     expect(mapped.sheet.defense.resistances).toContain('Fire')
+    expect(mapped.sheet.defense.maxHp).toBe(42)
+    expect(mapped.sheet.defense.currentHp).toBe(32)
+  })
+
+  it('falls back to removed hit points when current hit points are absent', () => {
+    const payload = createPayload()
+    delete payload.data.currentHitPoints
+
+    const mapped = mapDndBeyondCharacter({
+      campaignId: 'campaign-1',
+      sourceUrl: 'https://www.dndbeyond.com/characters/162166285',
+      payload,
+    })
+
+    expect(mapped.maxHp).toBe(42)
+    expect(mapped.currentHp).toBe(32)
+    expect(mapped.sheet.defense.currentHp).toBe(32)
   })
 
   it('maps speed when D&D Beyond returns grouped modifiers instead of a flat array', () => {

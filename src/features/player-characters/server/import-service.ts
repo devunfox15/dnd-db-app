@@ -11,8 +11,10 @@ import type {
 import type {
   DndBeyondAction,
   DndBeyondCharacterResponse,
+  DndBeyondChoice,
   DndBeyondClass,
   DndBeyondModifier,
+  DndBeyondNamedDescription,
   DndBeyondSpellEntry,
   NormalizedPlayerCharacterInput,
 } from '@/features/player-characters/types'
@@ -61,6 +63,18 @@ const ACTIVATION_TYPES: Record<number, string> = {
   8: 'Special',
 }
 
+const ALIGNMENT_LABELS: Record<number, string> = {
+  1: 'Lawful Good',
+  2: 'Neutral Good',
+  3: 'Chaotic Good',
+  4: 'Lawful Neutral',
+  5: 'Neutral',
+  6: 'Chaotic Neutral',
+  7: 'Lawful Evil',
+  8: 'Neutral Evil',
+  9: 'Chaotic Evil',
+}
+
 function readStat(stats: Array<{ value?: number }> | undefined, index: number) {
   return stats?.[index]?.value ?? 0
 }
@@ -92,6 +106,10 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   return [...new Set(values.map((value) => value?.trim()).filter(Boolean) as string[])]
 }
 
+function normalizeLabel(value: string | null | undefined) {
+  return value?.replace(/\s+/g, ' ').trim()
+}
+
 function modifierValue(modifier: DndBeyondModifier) {
   return modifier.value ?? modifier.fixedValue ?? 0
 }
@@ -117,12 +135,15 @@ function toInventorySummary(
   inventory:
     | Array<{
         quantity?: number
-        definition?: { name?: string }
+        definition?: { name?: string; isContainer?: boolean }
       }>
     | undefined
 ) {
   return (inventory ?? [])
     .map((item) => {
+      if (item.definition?.isContainer) {
+        return null
+      }
       const name = item.definition?.name?.trim()
       if (!name) {
         return null
@@ -141,7 +162,7 @@ function toSpellSummary(payload: DndBeyondCharacterResponse['data']) {
 }
 
 function toSpeedEntries(payload: DndBeyondCharacterResponse['data']) {
-  const entries: PlayerCharacterLabeledValue[] = []
+  const entries = new Map<string, string>()
   const speeds = payload?.race?.weightSpeeds?.normal
 
   if (speeds) {
@@ -154,24 +175,41 @@ function toSpeedEntries(payload: DndBeyondCharacterResponse['data']) {
     ] as const
 
     for (const [label, value] of ordered) {
-      if (typeof value === 'number') {
-        entries.push({ label, value: `${value} ft` })
+      if (typeof value === 'number' && value > 0) {
+        entries.set(label, `${value} ft`)
       }
     }
   }
 
-  if (entries.length > 0) {
-    return entries
+  for (const speed of payload?.customSpeeds ?? []) {
+    const label = normalizeLabel(speed.name)
+    if (label && typeof speed.distance === 'number' && speed.distance > 0) {
+      entries.set(label, `${speed.distance} ft`)
+    }
   }
 
-  const modifierList = flattenModifiers(payload?.modifiers)
-  const speedModifier = modifierList.find(
-    (modifier) =>
-      modifier?.subType === 'speed' ||
-      modifier?.friendlySubtypeName?.toLowerCase().includes('speed')
-  )
+  if (entries.size === 0) {
+    const modifierList = flattenModifiers(payload?.modifiers)
+    const speedModifier = modifierList.find(
+      (modifier) =>
+        modifier?.subType === 'speed' ||
+        modifier?.friendlySubtypeName?.toLowerCase().includes('speed')
+    )
 
-  return [{ label: 'Walk', value: `${speedModifier?.value ?? 30} ft` }]
+    entries.set('Walk', `${speedModifier?.value ?? 30} ft`)
+  } else if (!entries.has('Walk')) {
+    const modifierList = flattenModifiers(payload?.modifiers)
+    const speedModifier = modifierList.find(
+      (modifier) =>
+        modifier?.subType === 'speed' ||
+        modifier?.friendlySubtypeName?.toLowerCase().includes('speed')
+    )
+    if (typeof speedModifier?.value === 'number') {
+      entries.set('Walk', `${speedModifier.value} ft`)
+    }
+  }
+
+  return [...entries.entries()].map(([label, value]) => ({ label, value }))
 }
 
 function toSpeed(payload: DndBeyondCharacterResponse['data']) {
@@ -190,6 +228,20 @@ function toSenses(modifiers: DndBeyondCharacterResponse['data'] extends infer T
       label: modifier.friendlySubtypeName ?? toTitleCase(modifier.subType ?? 'Sense'),
       value: `${modifierValue(modifier)} ft`,
     }))
+}
+
+function mergeSenses(payload: DndBeyondCharacterResponse['data']) {
+  const senses = new Map<string, string>()
+  for (const sense of toSenses(payload?.modifiers)) {
+    senses.set(sense.label, sense.value)
+  }
+  for (const sense of payload?.customSenses ?? []) {
+    const label = normalizeLabel(sense.name)
+    if (label && typeof sense.distance === 'number' && sense.distance > 0) {
+      senses.set(label, `${sense.distance} ft`)
+    }
+  }
+  return [...senses.entries()].map(([label, value]) => ({ label, value }))
 }
 
 function toSavingThrows(
@@ -488,6 +540,34 @@ function pushFeature(features: PlayerCharacterFeatureTrait[], entry: PlayerChara
   features.push(entry)
 }
 
+function mapNamedFeature(
+  source: string,
+  definition: DndBeyondNamedDescription | undefined,
+  fallbackName?: string
+) {
+  const name = normalizeLabel(definition?.name) ?? normalizeLabel(fallbackName)
+  if (!name) return null
+  return {
+    name,
+    source,
+    description: definition?.description?.trim() ?? '',
+  }
+}
+
+function mapChoiceFeature(source: string, choice: DndBeyondChoice) {
+  const label = normalizeLabel(choice.label)
+  if (!label) return null
+  const matchedOption =
+    choice.options?.find((option) => normalizeLabel(option.label) === label) ??
+    (choice.options?.length === 1 ? choice.options[0] : undefined)
+
+  return {
+    name: label,
+    source,
+    description: matchedOption?.description?.trim() ?? '',
+  }
+}
+
 function toFeaturesAndTraits(payload: DndBeyondCharacterResponse['data']) {
   const features: PlayerCharacterFeatureTrait[] = []
 
@@ -504,6 +584,9 @@ function toFeaturesAndTraits(payload: DndBeyondCharacterResponse['data']) {
 
   for (const klass of payload?.classes ?? []) {
     for (const feature of klass.definition?.classFeatures ?? []) {
+      if (typeof feature.requiredLevel === 'number' && typeof klass.level === 'number') {
+        if (feature.requiredLevel > klass.level) continue
+      }
       const name = feature.name?.trim()
       if (!name) continue
       pushFeature(features, {
@@ -533,30 +616,68 @@ function toFeaturesAndTraits(payload: DndBeyondCharacterResponse['data']) {
     })
   }
 
+  for (const feature of payload?.features ?? []) {
+    pushFeature(features, mapNamedFeature('Feature', feature.definition))
+  }
+
+  for (const feat of payload?.feats ?? []) {
+    pushFeature(features, mapNamedFeature('Feat', feat.definition))
+  }
+
+  const optionSources = payload?.options
+  for (const [source, entries] of Object.entries(optionSources ?? {})) {
+    for (const entry of entries ?? []) {
+      pushFeature(features, mapNamedFeature('Option', entry.definition, `${toTitleCase(source)} Option`))
+    }
+  }
+
+  const choices = payload?.choices
+  for (const group of [choices?.race, choices?.class, choices?.background, choices?.item, choices?.feat]) {
+    for (const choice of group ?? []) {
+      pushFeature(features, mapChoiceFeature('Choice', choice))
+    }
+  }
+
   return features
 }
 
 function toInventoryItems(payload: DndBeyondCharacterResponse['data']) {
+  const containerNames = new Map<string, string>()
+  for (const item of payload?.inventory ?? []) {
+    const name = item.definition?.name?.trim()
+    if (name && item.id != null) {
+      containerNames.set(String(item.id), name)
+    }
+  }
+
   return (payload?.inventory ?? [])
     .map<PlayerCharacterInventoryItem | null>((item) => {
       const name = item.definition?.name?.trim()
       if (!name) return null
 
-      const detailParts = [
+      const detailParts = uniqueStrings([
         item.definition?.damage?.diceString,
         item.definition?.damageType,
         typeof item.definition?.armorClass === 'number' ? `AC ${item.definition.armorClass}` : null,
-      ]
+      ])
 
       return {
         name,
         quantity: item.quantity ?? 1,
         equipped: Boolean(item.equipped),
+        isAttuned: item.isAttuned ? true : undefined,
         type: item.definition?.type,
-        detail: uniqueStrings(detailParts)[0] ?? uniqueStrings(detailParts).join(' '),
+        subtype: item.definition?.subType ?? undefined,
+        rarity: item.definition?.rarity ?? undefined,
+        detail: detailParts.join(' '),
+        properties: uniqueStrings(
+          (item.definition?.properties ?? []).map((property) =>
+            property.notes ? `${property.name} (${property.notes})` : property.name
+          )
+        ),
         container:
           item.containerEntityId && item.containerEntityId !== payload?.id
-            ? String(item.containerEntityId)
+            ? containerNames.get(String(item.containerEntityId)) ?? undefined
             : undefined,
       }
     })
@@ -621,8 +742,9 @@ function toExtra(payload: DndBeyondCharacterResponse['data']) {
     skin: payload?.skin ?? undefined,
     height: payload?.height ?? undefined,
     weight: payload?.weight != null ? String(payload.weight) : undefined,
-    alignment: undefined,
-    lifestyle: undefined,
+    alignment:
+      payload?.alignmentId != null ? ALIGNMENT_LABELS[payload.alignmentId] ?? undefined : undefined,
+    lifestyle: payload?.lifestyle?.name ?? undefined,
     inspiration: payload?.inspiration != null ? (payload.inspiration ? 'Yes' : 'No') : undefined,
     cp: payload?.currencies?.cp ?? undefined,
     sp: payload?.currencies?.sp ?? undefined,
@@ -639,14 +761,15 @@ function toExtra(payload: DndBeyondCharacterResponse['data']) {
 function toDefense(
   payload: DndBeyondCharacterResponse['data'],
   maxHp: number,
-  speed: number
+  speed: number,
+  currentHp: number
 ) {
   const modifierList = flattenModifiers(payload?.modifiers)
 
   return {
     armorClass: payload?.armorClass ?? 10,
     maxHp,
-    currentHp: payload?.currentHitPoints ?? maxHp,
+    currentHp,
     tempHp: payload?.temporaryHitPoints ?? 0,
     speed,
     resistances: uniqueStrings(
@@ -669,6 +792,23 @@ function toDefense(
         )
     ),
   }
+}
+
+function toMaxHp(payload: DndBeyondCharacterResponse['data']) {
+  if (typeof payload?.overrideHitPoints === 'number') {
+    return payload.overrideHitPoints
+  }
+  return (payload?.baseHitPoints ?? 0) + (payload?.bonusHitPoints ?? 0)
+}
+
+function toCurrentHp(payload: DndBeyondCharacterResponse['data'], maxHp: number) {
+  if (typeof payload?.currentHitPoints === 'number') {
+    return payload.currentHitPoints
+  }
+  if (typeof payload?.removedHitPoints === 'number') {
+    return Math.max(0, maxHp - payload.removedHitPoints)
+  }
+  return maxHp
 }
 
 function abilityToWord(ability: AbilityKey) {
@@ -728,15 +868,16 @@ export function mapDndBeyondCharacter({
   const classes = data.classes ?? []
   const totalLevel = classes.reduce((sum, entry) => sum + (entry.level ?? 0), 0)
   const proficiencyBonus = Math.ceil(Math.max(totalLevel, 1) / 4) + 1
-  const maxHp = data.overrideHitPoints ?? data.baseHitPoints ?? 0
+  const maxHp = toMaxHp(data)
   const abilityScores =
     data.stats && data.stats.length >= 6 ? toAbilityScores(data.stats) : emptyAbilityScores
   const speed = toSpeed(data)
+  const currentHp = toCurrentHp(data, maxHp)
   const sheet = createEmptyPlayerCharacterSheet()
 
   sheet.proficiencyBonus = proficiencyBonus
   sheet.speed = toSpeedEntries(data)
-  sheet.senses = toSenses(data.modifiers)
+  sheet.senses = mergeSenses(data)
   sheet.savingThrows = toSavingThrows(abilityScores, data.modifiers, proficiencyBonus)
   sheet.skills = toSkills(abilityScores, data.modifiers, proficiencyBonus)
   sheet.proficienciesAndTraining = toProficienciesAndTraining(data.modifiers)
@@ -747,7 +888,7 @@ export function mapDndBeyondCharacter({
   sheet.background = toBackground(data)
   sheet.notes = toNotes(data)
   sheet.extra = toExtra(data)
-  sheet.defense = toDefense(data, maxHp, speed)
+  sheet.defense = toDefense(data, maxHp, speed, currentHp)
 
   return {
     campaignId,
@@ -762,7 +903,7 @@ export function mapDndBeyondCharacter({
     armorClass: data.armorClass ?? 10,
     initiative: data.initiative ?? 0,
     speed,
-    currentHp: data.currentHitPoints ?? maxHp,
+    currentHp,
     maxHp,
     tempHp: data.temporaryHitPoints ?? 0,
     abilityScores,

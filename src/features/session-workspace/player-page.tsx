@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { appRepository, useAppState } from '@/features/core/store'
 import type { PlayerCharacter } from '@/features/core/types'
-import { buildImportedPlayerCharacter, mergeImportedPlayerCharacter } from '@/features/player-characters/state'
+import {
+  buildImportedPlayerCharacter,
+  mergeImportedPlayerCharacter,
+} from '@/features/player-characters/state'
 import { importPlayerCharacter } from '@/features/player-characters/server/import-player-character'
 import { refreshPlayerCharacter } from '@/features/player-characters/server/refresh-player-character'
 
@@ -35,18 +38,22 @@ export default function WorkspacePlayerPage({
       })
   }, [campaignId, search, state.playerCharacters])
 
-  function applyImportedCharacter(imported: Parameters<typeof buildImportedPlayerCharacter>[0]) {
-    const existing = appRepository.getState().playerCharacters.find(
-      (entry) =>
-        entry.campaignId === campaignId &&
-        entry.dndBeyondCharacterId === imported.dndBeyondCharacterId
-    )
+  function applyImportedCharacter(
+    imported: Parameters<typeof buildImportedPlayerCharacter>[0],
+  ) {
+    const existing = appRepository
+      .getState()
+      .playerCharacters.find(
+        (entry) =>
+          entry.campaignId === campaignId &&
+          entry.dndBeyondCharacterId === imported.dndBeyondCharacterId,
+      )
 
     if (existing) {
       appRepository.update(
         'playerCharacters',
         existing.id,
-        mergeImportedPlayerCharacter(existing, imported)
+        mergeImportedPlayerCharacter(existing, imported),
       )
       return
     }
@@ -57,7 +64,10 @@ export default function WorkspacePlayerPage({
     })
   }
 
-  function setCharacterStatus(character: PlayerCharacter, patch: Partial<PlayerCharacter>) {
+  function setCharacterStatus(
+    character: PlayerCharacter,
+    patch: Partial<PlayerCharacter>,
+  ) {
     appRepository.update('playerCharacters', character.id, patch)
   }
 
@@ -81,7 +91,9 @@ export default function WorkspacePlayerPage({
         setImportUrl('')
       } catch (error) {
         setFormError(
-          error instanceof Error ? error.message : 'Failed to import character.'
+          error instanceof Error
+            ? error.message
+            : 'Failed to import character.',
         )
       }
     })
@@ -114,13 +126,15 @@ export default function WorkspacePlayerPage({
       appRepository.update(
         'playerCharacters',
         character.id,
-        mergeImportedPlayerCharacter(latest, result.character)
+        mergeImportedPlayerCharacter(latest, result.character),
       )
     } catch (error) {
       setCharacterStatus(character, {
         importStatus: 'error',
         importError:
-          error instanceof Error ? error.message : 'Failed to refresh character.',
+          error instanceof Error
+            ? error.message
+            : 'Failed to refresh character.',
       })
     }
   }
@@ -156,8 +170,10 @@ export default function WorkspacePlayerPage({
           <Input
             value={importUrl}
             onChange={(event) => setImportUrl(event.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleImport() }}
-            placeholder="https://www.dndbeyond.com/characters/162166285"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleImport()
+            }}
+            placeholder="https://www.dndbeyond.com/characters/xxxxxxxxx"
             className="border-amber-900/40 bg-stone-900/50 text-stone-300 placeholder:text-stone-700 focus:border-amber-700/50"
           />
           <Button
@@ -172,7 +188,9 @@ export default function WorkspacePlayerPage({
         <p className="mt-2 text-[11px] text-stone-600">
           Only public D&amp;D Beyond character URLs work here.
         </p>
-        {formError ? <p className="mt-1 text-[11px] text-red-400">{formError}</p> : null}
+        {formError ? (
+          <p className="mt-1 text-[11px] text-red-400">{formError}</p>
+        ) : null}
       </div>
 
       {/* Party Overview */}
@@ -200,7 +218,9 @@ export default function WorkspacePlayerPage({
         />
 
         {players.length === 0 ? (
-          <p className="text-sm italic text-stone-600">No player characters imported yet.</p>
+          <p className="text-sm italic text-stone-600">
+            No player characters imported yet.
+          </p>
         ) : (
           <div className="grid gap-3 xl:grid-cols-2">
             {players.map((player) => {
@@ -209,7 +229,11 @@ export default function WorkspacePlayerPage({
                   ? Math.round((player.currentHp / player.maxHp) * 100)
                   : 0
               const hpBarColor =
-                hpPercent > 50 ? '#16a34a' : hpPercent > 25 ? '#d97706' : '#dc2626'
+                hpPercent > 50
+                  ? '#16a34a'
+                  : hpPercent > 25
+                    ? '#d97706'
+                    : '#dc2626'
 
               return (
                 <div
@@ -223,7 +247,9 @@ export default function WorkspacePlayerPage({
                         {player.name}
                       </h3>
                       <p className="mt-0.5 text-[11px] text-stone-500">
-                        {player.race} &bull; {player.classSummary || 'Unclassed'} &bull; Level {player.level}
+                        {player.race} &bull;{' '}
+                        {player.classSummary || 'Unclassed'} &bull; Level{' '}
+                        {player.level}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -256,18 +282,25 @@ export default function WorkspacePlayerPage({
                   {/* HP Bar */}
                   <div className="mt-3">
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-red-600">HP</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-red-600">
+                        HP
+                      </span>
                       <span className="text-[11px] font-bold text-stone-400">
                         {player.currentHp} / {player.maxHp}
                         {player.tempHp > 0 && (
-                          <span className="ml-2 text-sky-400">+{player.tempHp} tmp</span>
+                          <span className="ml-2 text-sky-400">
+                            +{player.tempHp} tmp
+                          </span>
                         )}
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-stone-800">
                       <div
                         className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${hpPercent}%`, backgroundColor: hpBarColor }}
+                        style={{
+                          width: `${hpPercent}%`,
+                          backgroundColor: hpBarColor,
+                        }}
                       />
                     </div>
                   </div>
@@ -275,9 +308,21 @@ export default function WorkspacePlayerPage({
                   {/* Combat Stat Bubbles */}
                   <div className="mt-3 flex gap-2">
                     {[
-                      { label: 'AC', value: player.armorClass, color: 'text-amber-100' },
-                      { label: 'Init', value: formatMod(player.initiative), color: 'text-emerald-300' },
-                      { label: 'Speed', value: `${player.speed}ft`, color: 'text-sky-300' },
+                      {
+                        label: 'AC',
+                        value: player.armorClass,
+                        color: 'text-amber-100',
+                      },
+                      {
+                        label: 'Init',
+                        value: formatMod(player.initiative),
+                        color: 'text-emerald-300',
+                      },
+                      {
+                        label: 'Speed',
+                        value: `${player.speed}ft`,
+                        color: 'text-sky-300',
+                      },
                     ].map(({ label, value, color }) => (
                       <div
                         key={label}
@@ -286,24 +331,30 @@ export default function WorkspacePlayerPage({
                         <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700">
                           {label}
                         </span>
-                        <span className={`text-sm font-black ${color}`}>{value}</span>
+                        <span className={`text-sm font-black ${color}`}>
+                          {value}
+                        </span>
                       </div>
                     ))}
                   </div>
 
                   {/* Ability Scores */}
                   <div className="mt-3 grid grid-cols-6 gap-1">
-                    {Object.entries(player.abilityScores).map(([ability, value]) => (
-                      <div
-                        key={ability}
-                        className="flex flex-col items-center rounded border border-stone-800/60 bg-stone-900/50 px-0.5 py-1.5"
-                      >
-                        <span className="text-[7px] font-black uppercase tracking-wide text-amber-700">
-                          {ability}
-                        </span>
-                        <span className="text-xs font-bold text-amber-100">{value}</span>
-                      </div>
-                    ))}
+                    {Object.entries(player.abilityScores).map(
+                      ([ability, value]) => (
+                        <div
+                          key={ability}
+                          className="flex flex-col items-center rounded border border-stone-800/60 bg-stone-900/50 px-0.5 py-1.5"
+                        >
+                          <span className="text-[7px] font-black uppercase tracking-wide text-amber-700">
+                            {ability}
+                          </span>
+                          <span className="text-xs font-bold text-amber-100">
+                            {value}
+                          </span>
+                        </div>
+                      ),
+                    )}
                   </div>
 
                   {/* Conditions + Concentration */}
@@ -336,7 +387,9 @@ export default function WorkspacePlayerPage({
                       Remove
                     </Button>
                     {player.importError && (
-                      <p className="text-[10px] text-red-400">{player.importError}</p>
+                      <p className="text-[10px] text-red-400">
+                        {player.importError}
+                      </p>
                     )}
                   </div>
                 </div>
