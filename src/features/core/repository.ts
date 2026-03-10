@@ -35,6 +35,14 @@ function cloneState(state: AppState): AppState {
   return JSON.parse(JSON.stringify(state)) as AppState
 }
 
+function cloneValue<T>(value: T): T {
+  if (typeof structuredClone !== 'undefined') {
+    return structuredClone(value)
+  }
+
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
 function loadState(): AppState {
   const raw = localStorageAdapter.getItem(STORAGE_KEY)
   return safeParseState(raw)
@@ -210,6 +218,9 @@ export const appRepository: Repository = {
     nextState.pins = nextState.pins.filter((pin) => pin.campaignId !== campaignId)
     nextState.maps = nextState.maps.filter((map) => map.campaignId !== campaignId)
     nextState.npcs = nextState.npcs.filter((npc) => npc.campaignId !== campaignId)
+    nextState.playerCharacters = nextState.playerCharacters.filter(
+      (character) => character.campaignId !== campaignId
+    )
     nextState.timelineEvents = nextState.timelineEvents.filter((event) => event.campaignId !== campaignId)
     nextState.lookupEntries = nextState.lookupEntries.filter((entry) => entry.campaignId !== campaignId)
 
@@ -223,7 +234,7 @@ export const appRepository: Repository = {
   list(collection, filters) {
     const source = toCollectionArray(collection)
     const filtered = applyFilters(source, filters as ListFilters<BaseEntity> | undefined)
-    return cloneState(filtered) as EntityByCollection[typeof collection][]
+    return cloneValue(filtered) as EntityByCollection[typeof collection][]
   },
   create(collection, payload) {
     const collectionEntries = toCollectionArray(collection)
@@ -255,7 +266,7 @@ export const appRepository: Repository = {
 
     persistState(nextState)
 
-    return cloneState(nextEntity)
+    return cloneValue(nextEntity)
   },
   update(collection, id, patch) {
     const nextState = cloneState(appState)
@@ -282,7 +293,7 @@ export const appRepository: Repository = {
 
     persistState(nextState)
 
-    return cloneState(updated)
+    return cloneValue(updated)
   },
   delete(collection, id) {
     if (collection === 'campaigns') {

@@ -1,4 +1,9 @@
-import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useLocation,
+} from '@tanstack/react-router'
 import {
   CalendarDays,
   Users,
@@ -7,7 +12,12 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-const workspaceLinks: { label: string; to: string; icon: LucideIcon; segment: string }[] = [
+const workspaceLinks: {
+  label: string
+  to: string
+  icon: LucideIcon
+  segment: string
+}[] = [
   {
     label: 'Sessions',
     to: '/campaigns/$campaignId/workspace/sessions',
@@ -48,20 +58,18 @@ function RouteComponent() {
   const showNav = segments.length === 5 && segments[3] === 'workspace'
 
   return (
-    <div className="space-y-4">
+    <div className="h-full space-y-4">
       {showNav && (
         <div className="inline-flex items-center gap-1 rounded-xl border bg-card p-1 shadow-sm">
           {workspaceLinks.map((link) => {
             const Icon = link.icon
             const active =
-              location.pathname === link.to.replace('$campaignId', campaignId) ||
-              location.pathname === link.to.replace('$campaignId', campaignId) + '/'
+              location.pathname ===
+                link.to.replace('$campaignId', campaignId) ||
+              location.pathname ===
+                link.to.replace('$campaignId', campaignId) + '/'
             return (
-              <Link
-                key={link.segment}
-                to={link.to}
-                params={{ campaignId }}
-              >
+              <Link key={link.segment} to={link.to} params={{ campaignId }}>
                 <span
                   className={`flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
                     active

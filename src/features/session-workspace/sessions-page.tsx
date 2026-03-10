@@ -90,7 +90,7 @@ export default function SessionsPage({ campaignId }: { campaignId: string }) {
   const { sessions } = state
 
   return (
-    <div className="space-y-4">
+    <div className="h-full space-y-4">
       {/* Nav bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -99,17 +99,21 @@ export default function SessionsPage({ campaignId }: { campaignId: string }) {
             {sessions.length}
           </span>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+        <Button
+          size="sm"
+          className="gap-1.5"
+          onClick={() => setCreateOpen(true)}
+        >
           <Plus className="size-4" />
           New Session
         </Button>
       </div>
 
       {/* Session grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="h-full">
         {sessions.length === 0 ? (
-          <div className="col-span-full">
-            <Empty className="border py-16">
+          <div className="h-full">
+            <Empty className="h-full border py-16">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <CalendarDays />
@@ -136,48 +140,50 @@ export default function SessionsPage({ campaignId }: { campaignId: string }) {
           sessions.map((session) => (
             <div
               key={session.id}
-              className="group flex flex-col rounded-lg border bg-card p-4 transition-shadow duration-150 hover:shadow-sm"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {/* Header */}
-              <div className="mb-3 flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium leading-snug">
-                    {session.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Session #{session.sessionNumber}
-                  </p>
+              <div className="group flex flex-col rounded-lg border bg-card p-4 transition-shadow duration-150 hover:shadow-sm">
+                {/* Header */}
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium leading-snug">
+                      {session.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Session #{session.sessionNumber}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Description */}
-              <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
-                {session.description || 'No description yet.'}
-              </p>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] text-muted-foreground/50">
-                  {new Date(session.createdAt).toLocaleDateString()}
+                {/* Description */}
+                <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
+                  {session.description || 'No description yet.'}
                 </p>
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-7 cursor-pointer text-muted-foreground hover:text-destructive"
-                    onClick={() => setPendingDeleteId(session.id)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                  <Button size="sm" className="gap-1.5" asChild>
-                    <Link
-                      to="/campaigns/$campaignId/workspace/sessions/$sessionId"
-                      params={{ campaignId, sessionId: session.id }}
+
+                {/* Footer */}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-muted-foreground/50">
+                    {new Date(session.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-7 cursor-pointer text-muted-foreground hover:text-destructive"
+                      onClick={() => setPendingDeleteId(session.id)}
                     >
-                      <FolderOpen className="size-3.5" />
-                      Open
-                    </Link>
-                  </Button>
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                    <Button size="sm" className="gap-1.5" asChild>
+                      <Link
+                        to="/campaigns/$campaignId/workspace/sessions/$sessionId"
+                        params={{ campaignId, sessionId: session.id }}
+                      >
+                        <FolderOpen className="size-3.5" />
+                        Open
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -655,7 +655,7 @@ function DetailSkeleton() {
 // ---------------------------------------------------------------------------
 
 function ItemGrid({
-  tab,
+  tab: _tab,
   items,
   loading,
   onItemClick,

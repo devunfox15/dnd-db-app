@@ -92,6 +92,26 @@ function RouteComponent() {
         }
       }
 
+      const playerCharacterDetailMatch = sectionPath.match(
+        /^workspace\/player-characters\/([^/]+)$/
+      )
+      if (playerCharacterDetailMatch) {
+        const playerCharacterId = playerCharacterDetailMatch[1]
+        const playerCharacter = state.playerCharacters.find(
+          (entry) => entry.id === playerCharacterId
+        )
+        return [
+          { label: 'Campaigns', href: '/campaigns' },
+          { label: campaignName, href: campaignHref },
+          { label: 'Workspace', href: sessionsHref },
+          {
+            label: 'Player Characters',
+            href: `/campaigns/${campaignId}/workspace/player-characters`,
+          },
+          { label: playerCharacter?.name ?? 'Character' },
+        ]
+      }
+
       // /workspace (index)
       if (sectionPath === 'workspace' || sectionPath === 'workspace/') {
         return [

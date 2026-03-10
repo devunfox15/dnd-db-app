@@ -1,7 +1,8 @@
+import { createEmptyPlayerCharacterSheet } from './player-character-sheet'
 import { createSampleState } from './sample-data'
 import type { AppState } from './types'
 
-export const currentVersion = 2
+export const currentVersion = 4
 
 export function createEmptyState(): AppState {
   return {
@@ -12,6 +13,7 @@ export function createEmptyState(): AppState {
     pins: [],
     maps: [],
     npcs: [],
+    playerCharacters: [],
     timelineEvents: [],
     lookupEntries: [],
   }
@@ -30,10 +32,21 @@ export function migrateState(input: unknown): AppState {
     'pins' in raw &&
     'maps' in raw &&
     'npcs' in raw &&
+    'playerCharacters' in raw &&
     'timelineEvents' in raw &&
     'lookupEntries' in raw
 
-  if (!hasLegacyShape) {
+  const hasV1LegacyShape =
+    'version' in raw &&
+    'campaigns' in raw &&
+    'notes' in raw &&
+    'pins' in raw &&
+    'maps' in raw &&
+    'npcs' in raw &&
+    'timelineEvents' in raw &&
+    'lookupEntries' in raw
+
+  if (!hasLegacyShape && !hasV1LegacyShape) {
     return createEmptyState()
   }
 
@@ -51,6 +64,19 @@ export function migrateState(input: unknown): AppState {
     ...campaign,
     rpgSystem: campaign.rpgSystem ?? 'dnd-5e',
   }))
+
+  migrated.playerCharacters = Array.isArray(migrated.playerCharacters)
+    ? migrated.playerCharacters.map((character) => ({
+        ...character,
+        importSource:
+          character.importSource === 'json-upload' ||
+          character.importSource === 'manual-capture'
+            ? 'dndbeyond-url'
+            : character.importSource ?? 'dndbeyond-url',
+        importFileName: character.importFileName ?? null,
+        sheet: character.sheet ?? createEmptyPlayerCharacterSheet(),
+      }))
+    : []
 
   const validActiveCampaignId =
     typeof migrated.activeCampaignId === 'string' &&

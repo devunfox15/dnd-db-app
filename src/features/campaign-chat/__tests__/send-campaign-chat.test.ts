@@ -42,10 +42,10 @@ describe('send campaign chat server helpers', () => {
     expect(result.reply).toContain('rival guild')
     expect(fetchImpl).toHaveBeenCalledTimes(1)
 
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('http://127.0.0.1:11434/api/chat')
     const body = JSON.parse(String(init.body))
-    expect(body.model).toBe('qwen3-coder-next')
+    expect(body.model).toBe('qwen3-coder-next:latest')
     expect(body.stream).toBe(false)
     expect(body.messages[0].role).toBe('system')
   })

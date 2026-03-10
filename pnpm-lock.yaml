@@ -26,6 +26,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.0.6
         version: 4.2.1(vite@7.3.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
+      '@tanstack/db':
+        specifier: ^0.5.31
+        version: 0.5.31(typescript@5.9.3)
       '@tanstack/react-devtools':
         specifier: ^0.7.0
         version: 0.7.11(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(solid-js@1.9.11)
@@ -1903,6 +1906,9 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
   '@stylistic/eslint-plugin@5.9.0':
     resolution: {integrity: sha512-FqqSkvDMYJReydrMhlugc71M76yLLQWNfmGq+SIlLa7N3kHp8Qq8i2PyWrVNAfjOyOIY+xv9XaaYwvVW7vroMA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -2003,6 +2009,16 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
+  '@tanstack/db-ivm@0.1.17':
+    resolution: {integrity: sha512-DK7vm56CDxNuRAdsbiPs+gITJ+16tUtYgZg3BRTLYKGIDsy8sdIO7sQFq5zl7Y+aIKAPmMAbVp9UjJ75FTtwgQ==}
+    peerDependencies:
+      typescript: '>=4.7'
+
+  '@tanstack/db@0.5.31':
+    resolution: {integrity: sha512-q2gCcFLkQec6AwA8aSDDOEAT7hlyVn67J/kseUoZfEPyiokmx1oBekg27tywirmlSqc3Q5GUi5Vt/mjQ85gQmQ==}
+    peerDependencies:
+      typescript: '>=4.7'
+
   '@tanstack/devtools-client@0.0.3':
     resolution: {integrity: sha512-kl0r6N5iIL3t9gGDRAv55VRM3UIyMKVH83esRGq7xBjYsRLe/BeCIN2HqrlJkObUXQMKhy7i8ejuGOn+bDqDBw==}
     engines: {node: '>=18'}
@@ -2050,6 +2066,10 @@ packages:
   '@tanstack/history@1.161.4':
     resolution: {integrity: sha512-Kp/WSt411ZWYvgXy6uiv5RmhHrz9cAml05AQPrtdAp7eUqvIDbMGPnML25OKbzR3RJ1q4wgENxDTvlGPa9+Mww==}
     engines: {node: '>=20.19'}
+
+  '@tanstack/pacer-lite@0.2.1':
+    resolution: {integrity: sha512-3PouiFjR4B6x1c969/Pl4ZIJleof1M0n6fNX8NRiC9Sqv1g06CVDlEaXUR4212ycGFyfq4q+t8Gi37Xy+z34iQ==}
+    engines: {node: '>=18'}
 
   '@tanstack/query-core@5.90.20':
     resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
@@ -3184,6 +3204,10 @@ packages:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
 
+  fractional-indexing@3.2.0:
+    resolution: {integrity: sha512-PcOxmqwYCW7O2ovKRU8OoQQj2yqTfEB/yeTYk4gPid6dN5ODRfU1hXd9tTVZzax/0NkO7AxpHykvZnT1aYp/BQ==}
+    engines: {node: ^14.13.1 || >=16.0.0}
+
   fresh@2.0.0:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
@@ -4193,6 +4217,9 @@ packages:
 
   solid-js@1.9.11:
     resolution: {integrity: sha512-WEJtcc5mkh/BnHA6Yrg4whlF8g6QwpmXXRg4P2ztPmcKeHHlH4+djYecBLhSpecZY2RRECXYUwIc/C2r3yzQ4Q==}
+
+  sorted-btree@1.8.1:
+    resolution: {integrity: sha512-395+XIP+wqNn3USkFSrNz7G3Ss/MXlZEqesxvzCRFwL14h6e8LukDHdLBePn5pwbm5OQ9vGu8mDyz2lLDIqamQ==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -6455,6 +6482,8 @@ snapshots:
     dependencies:
       solid-js: 1.9.11
 
+  '@standard-schema/spec@1.1.0': {}
+
   '@stylistic/eslint-plugin@5.9.0(eslint@9.39.3(jiti@2.6.1))':
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.3(jiti@2.6.1))
@@ -6532,6 +6561,19 @@ snapshots:
       '@tailwindcss/oxide': 4.2.1
       tailwindcss: 4.2.1
       vite: 7.3.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)
+
+  '@tanstack/db-ivm@0.1.17(typescript@5.9.3)':
+    dependencies:
+      fractional-indexing: 3.2.0
+      sorted-btree: 1.8.1
+      typescript: 5.9.3
+
+  '@tanstack/db@0.5.31(typescript@5.9.3)':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      '@tanstack/db-ivm': 0.1.17(typescript@5.9.3)
+      '@tanstack/pacer-lite': 0.2.1
+      typescript: 5.9.3
 
   '@tanstack/devtools-client@0.0.3':
     dependencies:
@@ -6611,6 +6653,8 @@ snapshots:
       - typescript
 
   '@tanstack/history@1.161.4': {}
+
+  '@tanstack/pacer-lite@0.2.1': {}
 
   '@tanstack/query-core@5.90.20': {}
 
@@ -7885,6 +7929,8 @@ snapshots:
 
   forwarded@0.2.0: {}
 
+  fractional-indexing@3.2.0: {}
+
   fresh@2.0.0: {}
 
   fs-extra@11.3.4:
@@ -8965,6 +9011,8 @@ snapshots:
       csstype: 3.2.3
       seroval: 1.5.0
       seroval-plugins: 1.5.0(seroval@1.5.0)
+
+  sorted-btree@1.8.1: {}
 
   source-map-js@1.2.1: {}
 

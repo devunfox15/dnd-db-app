@@ -91,7 +91,7 @@ export default function FeaturePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="h-full space-y-4">
       {/* Nav bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -111,10 +111,10 @@ export default function FeaturePage() {
       </div>
 
       {/* Campaign grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="h-full">
         {dashboardItems.length === 0 ? (
-          <div className="col-span-full">
-            <Empty className="border py-16">
+          <div className="h-full">
+            <Empty className="h-full border py-16">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Scroll />
@@ -144,56 +144,60 @@ export default function FeaturePage() {
             return (
               <div
                 key={item.campaign.id}
-                className={`group flex flex-col rounded-lg border bg-card p-4 transition-shadow duration-150 hover:shadow-sm ${
-                  isActive ? 'ring-2 ring-primary' : ''
-                }`}
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
-                {/* Header */}
-                <div className="mb-3 flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium leading-snug">
-                      {item.campaign.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {rpgLabel(item.campaign.rpgSystem)}
-                    </p>
+                <div
+                  className={`group flex flex-col rounded-lg border bg-card p-4 transition-shadow duration-150 hover:shadow-sm ${
+                    isActive ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  {/* Header */}
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium leading-snug">
+                        {item.campaign.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {rpgLabel(item.campaign.rpgSystem)}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                    )}
                   </div>
-                  {isActive && (
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                  )}
-                </div>
 
-                {/* Excerpt */}
-                <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
-                  {item.excerpt || 'No notes yet.'}
-                </p>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-muted-foreground/50">
-                    {new Date(item.lastUpdatedAt).toLocaleDateString()}
+                  {/* Excerpt */}
+                  <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted-foreground">
+                    {item.excerpt || 'No notes yet.'}
                   </p>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-7 cursor-pointer text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        setPendingDeleteCampaignId(item.campaign.id)
-                      }
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                    <Link
-                      to="/campaigns/$campaignId"
-                      params={{ campaignId: item.campaign.id }}
-                      onClick={() => handleOpenCampaign(item.campaign.id)}
-                    >
-                      <Button size="sm" className="gap-1.5">
-                        <FolderOpen className="size-3.5" />
-                        Open
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] text-muted-foreground/50">
+                      {new Date(item.lastUpdatedAt).toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 cursor-pointer text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          setPendingDeleteCampaignId(item.campaign.id)
+                        }
+                      >
+                        <Trash2 className="size-3.5" />
                       </Button>
-                    </Link>
+                      <Link
+                        to="/campaigns/$campaignId"
+                        params={{ campaignId: item.campaign.id }}
+                        onClick={() => handleOpenCampaign(item.campaign.id)}
+                      >
+                        <Button size="sm" className="gap-1.5">
+                          <FolderOpen className="size-3.5" />
+                          Open
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

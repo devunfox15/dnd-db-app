@@ -138,6 +138,7 @@ export function createSampleState(version: number): AppState {
     pins: starterPins,
     maps: starterMaps,
     npcs: starterNpcs,
+    playerCharacters: [],
     timelineEvents: starterTimeline,
     lookupEntries: starterLookup,
   }
