@@ -104,8 +104,18 @@ describe('Workspace player detail page', () => {
               quantity: 1,
               equipped: true,
               isAttuned: true,
-              type: 'Weapon',
+              type: 'Longbow',
+              filterType: 'Weapon',
+              subtype: 'Martial Weapon',
               rarity: 'Uncommon',
+              attackType: 2,
+              weaponCategoryId: 2,
+              range: 150,
+              longRange: 600,
+              damage: '1d8',
+              damageType: 'Piercing',
+              description:
+                '<p>Ammo weapon used for ranged attacks.</p>',
               detail: '1d8 Piercing',
               properties: ['Ammunition', 'Heavy'],
             },
@@ -176,12 +186,17 @@ describe('Workspace player detail page', () => {
     expect(markup).toContain('Features &amp; Traits')
     expect(markup).toContain('Background &amp; Notes')
     expect(markup).toContain('Darkvision')
-    expect(markup).toContain('Sneak Attack')
+    expect(markup).toContain('Unarmed Strike')
+    expect(markup).toContain('1 + 1 Bludgeoning')
+    expect(markup).toContain('Longbow')
+    expect(markup).toContain('150/600 ft')
+    expect(markup).toContain('+6')
+    expect(markup).toContain('1d8 + 3 Piercing')
+    expect(markup).toContain('Ammunition | Heavy')
     expect(markup).toContain('Poisoned')
     expect(markup).toContain('Track concentration.')
-    expect(markup).toContain('<strong>Deal</strong>')
-    expect(markup).toContain('<ul>')
     expect(markup).not.toContain('Hunter&#x27;s Mark')
+    expect(markup).not.toContain('Sneak Attack')
     expect(markup).not.toContain('Fey Ancestry')
     expect(markup).not.toContain('Artisan')
     expect(markup).not.toContain('The Great One')

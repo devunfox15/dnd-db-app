@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { appRepository, useAppState } from '@/features/core/store'
 import type {
   PlayerCharacter,
-  PlayerCharacterAction,
   PlayerCharacterFeatureTrait,
   PlayerCharacterInventoryItem,
   PlayerCharacterLabeledValue,
@@ -431,43 +430,178 @@ function SkillList({ values }: { values: PlayerCharacterSkill[] }) {
   )
 }
 
-function ActionList({ values }: { values: PlayerCharacterAction[] }) {
-  if (values.length === 0) {
-    return (
-      <p className="text-[11px] italic text-stone-600">No actions imported.</p>
-    )
+function abilityModifier(score: number) {
+  return Math.floor((score - 10) / 2)
+}
+
+function isWeaponItem(item: PlayerCharacterInventoryItem) {
+  return (
+    item.filterType === 'Weapon' ||
+    typeof item.attackType === 'number' ||
+    Boolean(item.damage)
+  )
+}
+
+function isProficientWithWeapon(
+  item: PlayerCharacterInventoryItem,
+  proficiencies: PlayerCharacter['sheet']['proficienciesAndTraining'],
+) {
+  const known = new Set(
+    [
+      ...proficiencies.weapons,
+      ...proficiencies.other,
+      item.name,
+      item.type,
+      item.subtype,
+    ]
+      .filter(Boolean)
+      .map((value) => value!.toLowerCase()),
+  )
+
+  if (item.weaponCategoryId === 1 && known.has('simple weapons')) {
+    return true
+  }
+
+  if (item.weaponCategoryId === 2 && known.has('martial weapons')) {
+    return true
   }
 
   return (
-    <div className="space-y-2">
-      {values.map((entry) => (
-        <div
-          key={entry.name}
-          className="rounded border border-stone-800/50 bg-stone-900/50 px-3 py-2"
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-amber-100">
-              {entry.name}
-            </span>
-            {entry.activationType ? (
-              <span className="rounded border border-amber-900/50 px-1.5 py-0.5 text-[9px] uppercase text-amber-500">
-                {entry.activationType}
-              </span>
-            ) : null}
-            {entry.damage ? (
-              <span className="text-[10px] text-stone-500">{entry.damage}</span>
-            ) : null}
-          </div>
-          {entry.range ? (
-            <div className="mt-1 text-[10px] text-stone-500">
-              Range: {entry.range}
-            </div>
-          ) : null}
-          {entry.description ? (
-            <RichText html={entry.description} className="mt-2" />
-          ) : null}
+    known.has(item.name.toLowerCase()) ||
+    (item.type ? known.has(item.type.toLowerCase()) : false) ||
+    (item.subtype ? known.has(item.subtype.toLowerCase()) : false)
+  )
+}
+
+function pickWeaponAbility(item: PlayerCharacterInventoryItem, character: PlayerCharacter) {
+  const str = abilityModifier(character.abilityScores.str)
+  const dex = abilityModifier(character.abilityScores.dex)
+  const hasFinesse = item.properties?.some((property) =>
+    property.toLowerCase().startsWith('finesse'),
+  )
+
+  if (item.attackType === 2) {
+    return dex
+  }
+
+  if (hasFinesse) {
+    return Math.max(str, dex)
+  }
+
+  return str
+}
+
+function formatAttackRange(item: PlayerCharacterInventoryItem) {
+  if (typeof item.range === 'number' && typeof item.longRange === 'number') {
+    return `${item.range}/${item.longRange} ft`
+  }
+
+  if (typeof item.range === 'number') {
+    return `${item.range} ft`
+  }
+
+  return item.attackType === 2 ? 'Ranged' : 'Melee'
+}
+
+function formatAttackDamage(item: PlayerCharacterInventoryItem, abilityMod: number) {
+  if (!item.damage) {
+    return null
+  }
+
+  const modPart =
+    abilityMod === 0 ? '' : abilityMod > 0 ? ` + ${abilityMod}` : ` - ${Math.abs(abilityMod)}`
+  return `${item.damage}${modPart}${item.damageType ? ` ${item.damageType}` : ''}`
+}
+
+function buildAttackNotes(item: PlayerCharacterInventoryItem) {
+  const summary = item.description
+    ?.replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return [...(item.properties ?? []), summary]
+    .filter(Boolean)
+    .join(' | ')
+}
+
+function formatUnarmedDamage(abilityMod: number) {
+  const total = 1 + abilityMod
+  return total >= 0
+    ? `1 + ${abilityMod} Bludgeoning`
+    : `1 - ${Math.abs(abilityMod)} Bludgeoning`
+}
+
+function ActionList({ character }: { character: PlayerCharacter }) {
+  const values = character.sheet.inventory.filter(isWeaponItem)
+  const unarmedAbilityMod = abilityModifier(character.abilityScores.str)
+  const unarmedHitBonus = unarmedAbilityMod + character.sheet.proficiencyBonus
+
+  return (
+    <div className="overflow-hidden rounded border border-stone-800/50 bg-stone-900/40">
+      <div className="grid grid-cols-[minmax(0,2fr)_110px_90px_160px_minmax(0,2fr)] gap-3 border-b border-stone-800/60 bg-stone-950/70 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-600">
+        <span>Attack</span>
+        <span>Range</span>
+        <span>HIT/DC</span>
+        <span>Damage</span>
+        <span>Notes</span>
+      </div>
+      <div className="grid grid-cols-[minmax(0,2fr)_110px_90px_160px_minmax(0,2fr)] gap-3 border-b border-stone-800/40 px-3 py-3 text-[11px]">
+        <div className="min-w-0">
+          <div className="font-semibold text-amber-100">Unarmed Strike</div>
+          <div className="text-[10px] text-stone-500">Natural Attack</div>
         </div>
-      ))}
+        <div className="text-stone-300">Melee</div>
+        <div className="font-black text-amber-300">
+          {formatMod(unarmedHitBonus)}
+        </div>
+        <div className="text-stone-300">
+          {formatUnarmedDamage(unarmedAbilityMod)}
+        </div>
+        <div className="min-w-0 text-stone-400">
+          Uses Strength. Default non-weapon melee attack.
+        </div>
+      </div>
+      {values.map((entry) => {
+        const abilityMod = pickWeaponAbility(entry, character)
+        const proficient = isProficientWithWeapon(
+          entry,
+          character.sheet.proficienciesAndTraining,
+        )
+        const hitBonus =
+          abilityMod +
+          (proficient ? character.sheet.proficiencyBonus : 0)
+        const weaponType =
+          entry.subtype ??
+          (entry.weaponCategoryId === 1
+            ? 'Simple Weapon'
+            : entry.weaponCategoryId === 2
+              ? 'Martial Weapon'
+              : entry.type)
+
+        return (
+          <div
+            key={`${entry.name}-${entry.range ?? 'melee'}`}
+            className="grid grid-cols-[minmax(0,2fr)_110px_90px_160px_minmax(0,2fr)] gap-3 border-b border-stone-800/40 px-3 py-3 text-[11px] last:border-0"
+          >
+            <div className="min-w-0">
+              <div className="font-semibold text-amber-100">{entry.name}</div>
+              {weaponType ? (
+                <div className="text-[10px] text-stone-500">{weaponType}</div>
+              ) : null}
+            </div>
+            <div className="text-stone-300">{formatAttackRange(entry)}</div>
+            <div className="font-black text-amber-300">
+              {formatMod(hitBonus)}
+            </div>
+            <div className="text-stone-300">
+              {formatAttackDamage(entry, abilityMod) ?? 'None'}
+            </div>
+            <div className="min-w-0 text-stone-400">
+              {buildAttackNotes(entry) || 'None'}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -957,7 +1091,7 @@ export default function WorkspacePlayerDetailPage({
             </div>
 
             <TabsContent value="actions" className="flex-1 overflow-y-auto p-4">
-              <ActionList values={sheet.actions} />
+              <ActionList character={currentCharacter} />
             </TabsContent>
 
             <TabsContent value="spells" className="flex-1 overflow-y-auto p-4">

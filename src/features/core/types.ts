@@ -155,8 +155,16 @@ export interface PlayerCharacterInventoryItem {
   equipped: boolean
   isAttuned?: boolean
   type?: string
+  filterType?: string
   subtype?: string
   rarity?: string
+  attackType?: number
+  weaponCategoryId?: number
+  range?: number
+  longRange?: number
+  damage?: string
+  damageType?: string
+  description?: string
   detail?: string
   properties?: string[]
   container?: string

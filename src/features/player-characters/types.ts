@@ -168,6 +168,10 @@ export interface DndBeyondCharacterResponse {
         tags?: string[]
         isContainer?: boolean
         canAttune?: boolean
+        attackType?: number | null
+        categoryId?: number | null
+        range?: number | null
+        longRange?: number | null
         damageType?: string | null
         damage?: { diceString?: string } | null
         armorClass?: number | null

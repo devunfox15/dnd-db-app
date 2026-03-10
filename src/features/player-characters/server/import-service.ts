@@ -667,8 +667,28 @@ function toInventoryItems(payload: DndBeyondCharacterResponse['data']) {
         equipped: Boolean(item.equipped),
         isAttuned: item.isAttuned ? true : undefined,
         type: item.definition?.type,
+        filterType: item.definition?.filterType ?? undefined,
         subtype: item.definition?.subType ?? undefined,
         rarity: item.definition?.rarity ?? undefined,
+        attackType:
+          typeof item.definition?.attackType === 'number'
+            ? item.definition.attackType
+            : undefined,
+        weaponCategoryId:
+          typeof item.definition?.categoryId === 'number'
+            ? item.definition.categoryId
+            : undefined,
+        range:
+          typeof item.definition?.range === 'number'
+            ? item.definition.range
+            : undefined,
+        longRange:
+          typeof item.definition?.longRange === 'number'
+            ? item.definition.longRange
+            : undefined,
+        damage: item.definition?.damage?.diceString ?? undefined,
+        damageType: item.definition?.damageType ?? undefined,
+        description: item.definition?.description ?? undefined,
         detail: detailParts.join(' '),
         properties: uniqueStrings(
           (item.definition?.properties ?? []).map((property) =>
