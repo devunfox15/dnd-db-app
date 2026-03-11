@@ -1,8 +1,35 @@
 import { createEmptyPlayerCharacterSheet } from './player-character-sheet'
 import { createSampleState } from './sample-data'
-import type { AppState } from './types'
+import type { AppState, MapFeature, PlayerCharacterImportSource } from './types'
 
-export const currentVersion = 5
+export const currentVersion = 6
+
+function normalizeMapKind(kind: unknown): 'world' | 'session' {
+  return kind === 'session' ? 'session' : 'world'
+}
+
+function normalizeMapFeature(input: unknown): MapFeature {
+  const feature = input as Partial<MapFeature>
+  return {
+    ...feature,
+    kind:
+      feature.kind === 'location-pin' ||
+      feature.kind === 'settlement' ||
+      feature.kind === 'landmark' ||
+      feature.kind === 'dungeon' ||
+      feature.kind === 'resource' ||
+      feature.kind === 'magical-anomaly' ||
+      feature.kind === 'river' ||
+      feature.kind === 'road' ||
+      feature.kind === 'border'
+        ? feature.kind
+        : 'landmark',
+    linkedMapDocumentId:
+      typeof feature.linkedMapDocumentId === 'string'
+        ? feature.linkedMapDocumentId
+        : null,
+  } as MapFeature
+}
 
 export function createEmptyState(): AppState {
   return {
@@ -67,21 +94,36 @@ export function migrateState(input: unknown): AppState {
     rpgSystem: campaign.rpgSystem ?? 'dnd-5e',
   }))
 
+  migrated.maps = Array.isArray(migrated.maps)
+    ? migrated.maps.map((map) => ({
+        ...map,
+        kind: normalizeMapKind(map.kind),
+      }))
+    : []
+
   migrated.playerCharacters = Array.isArray(migrated.playerCharacters)
     ? migrated.playerCharacters.map((character) => ({
         ...character,
-        importSource:
-          character.importSource === 'json-upload' ||
-          character.importSource === 'manual-capture'
+        importSource: ((importSource) =>
+          importSource === 'json-upload' || importSource === 'manual-capture'
             ? 'dndbeyond-url'
-            : character.importSource ?? 'dndbeyond-url',
+            : importSource ?? 'dndbeyond-url')(
+          character.importSource as PlayerCharacterImportSource | 'json-upload' | 'manual-capture' | undefined,
+        ),
         importFileName: character.importFileName ?? null,
         sheet: character.sheet ?? createEmptyPlayerCharacterSheet(),
       }))
     : []
 
   migrated.mapDocuments = Array.isArray(migrated.mapDocuments)
-    ? migrated.mapDocuments
+    ? migrated.mapDocuments.map((document) => ({
+        ...document,
+        kind: normalizeMapKind(document.kind),
+        labels: Array.isArray(document.labels) ? document.labels : [],
+        features: Array.isArray(document.features)
+          ? document.features.map((feature) => normalizeMapFeature(feature))
+          : [],
+      }))
     : []
 
   const validActiveCampaignId =

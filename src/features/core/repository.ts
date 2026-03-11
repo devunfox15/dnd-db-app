@@ -128,6 +128,10 @@ function cleanupRelations(next: AppState): AppState {
       ...feature,
       linkedNpcIds: feature.linkedNpcIds.filter((id) => npcIds.has(id)),
       linkedPinIds: feature.linkedPinIds.filter((id) => pinIds.has(id)),
+      linkedMapDocumentId:
+        feature.linkedMapDocumentId && mapDocumentIds.has(feature.linkedMapDocumentId)
+          ? feature.linkedMapDocumentId
+          : null,
     })),
   }))
 

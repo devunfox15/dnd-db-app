@@ -131,4 +131,96 @@ describe('migrateState', () => {
     expect(migrated.playerCharacters[0]?.sheet).toBeTruthy()
     expect(migrated.playerCharacters[0]?.sheet.proficienciesAndTraining.languages).toEqual([])
   })
+
+  it('adds default map kinds, labels, and linked map references to legacy map data', () => {
+    const now = new Date().toISOString()
+    const migrated = migrateState({
+      version: 5,
+      activeCampaignId: 'campaign-1',
+      campaigns: [
+        {
+          id: 'campaign-1',
+          campaignId: 'campaign-1',
+          name: 'Campaign 1',
+          description: '',
+          rpgSystem: 'dnd-5e',
+          createdAt: now,
+          updatedAt: now,
+          tags: [],
+        },
+      ],
+      notes: [],
+      pins: [],
+      maps: [
+        {
+          id: 'map-1',
+          campaignId: 'campaign-1',
+          name: 'Old Map',
+          region: 'Frontier',
+          description: '',
+          imageUrl: '',
+          usedNpcIds: [],
+          linkedPinIds: [],
+          usedInStory: false,
+          createdAt: now,
+          updatedAt: now,
+          tags: [],
+        },
+      ],
+      mapDocuments: [
+        {
+          id: 'mapdoc-1',
+          campaignId: 'campaign-1',
+          summaryMapId: 'map-1',
+          name: 'Old Map',
+          regionName: 'Frontier',
+          scale: 'provincial',
+          hexSizeMiles: 1,
+          width: 3,
+          height: 3,
+          seed: 7,
+          parentMapId: null,
+          parentHexId: null,
+          childMapIdsByHex: {},
+          hexes: [],
+          features: [
+            {
+              id: 'feature-1',
+              kind: 'settlement',
+              label: 'Old Keep',
+              hexId: 'hex-0-0',
+              linkedNpcIds: [],
+              linkedPinIds: [],
+              notes: '',
+            },
+          ],
+          generationSettings: {
+            biomeBias: 'temperate',
+            coastlineMode: 'inland',
+            terrainRoughness: 0.3,
+            riverDensity: 0.2,
+            forestDensity: 0.4,
+            swampDensity: 0.1,
+            desertDensity: 0,
+            settlementDensity: 0.4,
+            civilizationAge: 'frontier',
+            fantasyIntensity: 0.1,
+          },
+          cultureSummary: '',
+          createdAt: now,
+          updatedAt: now,
+          tags: [],
+        },
+      ],
+      npcs: [],
+      playerCharacters: [],
+      timelineEvents: [],
+      lookupEntries: [],
+    })
+
+    expect(migrated.maps[0]?.kind).toBe('world')
+    expect(migrated.mapDocuments[0]?.kind).toBe('world')
+    expect(migrated.mapDocuments[0]?.labels).toEqual([])
+    expect(migrated.mapDocuments[0]?.features[0]?.linkedMapDocumentId).toBeNull()
+  })
 })

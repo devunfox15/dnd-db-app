@@ -30,6 +30,7 @@ describe('Workspace locations page module', () => {
       {
         id: 'map-1',
         campaignId: 'campaign-1',
+        kind: 'world',
         name: 'Greenhollow March',
         region: 'Provincial',
         description: '1 hex = 1 mile',
@@ -46,6 +47,7 @@ describe('Workspace locations page module', () => {
       {
         id: 'doc-1',
         campaignId: 'campaign-1',
+        kind: 'world',
         summaryMapId: 'map-1',
         name: 'Greenhollow March',
         regionName: 'Greenhollow March',
@@ -57,15 +59,30 @@ describe('Workspace locations page module', () => {
         parentMapId: null,
         parentHexId: null,
         childMapIdsByHex: {},
-        hexes: [],
+        hexes: [
+          {
+            id: 'hex-0-0',
+            q: 0,
+            r: 0,
+            terrain: 'plains',
+            elevation: 0.1,
+            climate: 'temperate',
+            travelDifficulty: 1,
+            notes: '',
+            tags: [],
+            resource: null,
+          },
+        ],
+        labels: [],
         features: [
           {
             id: 'feature-1',
-            kind: 'settlement',
+            kind: 'location-pin',
             label: 'Greenhollow',
             hexId: 'hex-1',
             linkedNpcIds: [],
             linkedPinIds: [],
+            linkedMapDocumentId: null,
             notes: 'Village',
           },
         ],
@@ -97,6 +114,9 @@ describe('Workspace locations page module', () => {
 
     expect(markup).toContain('Hex Map Builder')
     expect(markup).toContain('Map Hierarchy')
+    expect(markup).toContain('World')
+    expect(markup).toContain('Session')
+    expect(markup).toContain('Map Inspector')
     expect(markup).toContain('Greenhollow March')
     expect(markup).not.toContain('Open Location Database')
   })

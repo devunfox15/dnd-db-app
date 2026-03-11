@@ -128,6 +128,7 @@ describe('appRepository', () => {
     })
     appRepository.create('maps', {
       campaignId,
+      kind: 'world',
       name: 'Map',
       region: '',
       description: '',
@@ -147,5 +148,117 @@ describe('appRepository', () => {
     expect(state.pins).toHaveLength(0)
     expect(state.maps).toHaveLength(0)
     expect(state.activeCampaignId).toBeNull()
+  })
+
+  it('cleans linked session map references from world pins when a child map document is deleted', () => {
+    const worldMap = appRepository.create('maps', {
+      campaignId,
+      kind: 'world',
+      name: 'World Map',
+      region: 'Frontier',
+      description: '',
+      imageUrl: '',
+      usedNpcIds: [],
+      linkedPinIds: [],
+      usedInStory: true,
+      tags: [],
+    })
+    const sessionMap = appRepository.create('maps', {
+      campaignId,
+      kind: 'session',
+      name: 'Ruined Tower',
+      region: 'Tower',
+      description: '',
+      imageUrl: '',
+      usedNpcIds: [],
+      linkedPinIds: [],
+      usedInStory: true,
+      tags: [],
+    })
+
+    appRepository.create('mapDocuments', {
+      id: 'world-doc',
+      campaignId,
+      kind: 'world',
+      summaryMapId: worldMap.id,
+      name: 'World Map',
+      regionName: 'Frontier',
+      scale: 'kingdom',
+      hexSizeMiles: 6,
+      width: 3,
+      height: 3,
+      seed: 1,
+      parentMapId: null,
+      parentHexId: null,
+      childMapIdsByHex: { 'hex-0-0': 'session-doc' },
+      hexes: [],
+      labels: [],
+      features: [
+        {
+          id: 'feature-1',
+          kind: 'location-pin',
+          label: 'Ruined Tower',
+          hexId: 'hex-0-0',
+          linkedNpcIds: [],
+          linkedPinIds: [],
+          linkedMapDocumentId: 'session-doc',
+          notes: '',
+        },
+      ],
+      generationSettings: {
+        biomeBias: 'temperate',
+        coastlineMode: 'inland',
+        terrainRoughness: 0.3,
+        riverDensity: 0.2,
+        forestDensity: 0.4,
+        swampDensity: 0.1,
+        desertDensity: 0,
+        settlementDensity: 0.4,
+        civilizationAge: 'frontier',
+        fantasyIntensity: 0.1,
+      },
+      cultureSummary: '',
+      tags: [],
+    })
+
+    appRepository.create('mapDocuments', {
+      id: 'session-doc',
+      campaignId,
+      kind: 'session',
+      summaryMapId: sessionMap.id,
+      name: 'Ruined Tower',
+      regionName: 'Tower',
+      scale: 'provincial',
+      hexSizeMiles: 1,
+      width: 3,
+      height: 3,
+      seed: 2,
+      parentMapId: 'world-doc',
+      parentHexId: 'hex-0-0',
+      childMapIdsByHex: {},
+      hexes: [],
+      labels: [],
+      features: [],
+      generationSettings: {
+        biomeBias: 'temperate',
+        coastlineMode: 'inland',
+        terrainRoughness: 0.3,
+        riverDensity: 0.2,
+        forestDensity: 0.4,
+        swampDensity: 0.1,
+        desertDensity: 0,
+        settlementDensity: 0.4,
+        civilizationAge: 'frontier',
+        fantasyIntensity: 0.1,
+      },
+      cultureSummary: '',
+      tags: [],
+    })
+
+    appRepository.delete('mapDocuments', 'session-doc')
+
+    const refreshed = appRepository.list('mapDocuments').find((entry) => entry.id === 'world-doc')
+    expect(refreshed?.childMapIdsByHex).toEqual({})
+    expect(refreshed?.features[0]?.linkedMapDocumentId).toBeNull()
   })
 })

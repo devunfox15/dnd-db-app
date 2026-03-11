@@ -40,6 +40,7 @@ export interface StoryPin extends BaseEntity {
 }
 
 export interface MapRecord extends BaseEntity {
+  kind: 'world' | 'session'
   name: string
   region: string
   description: string
@@ -72,6 +73,7 @@ export type HexClimate =
 export type MapFeatureKind =
   | 'settlement'
   | 'landmark'
+  | 'location-pin'
   | 'dungeon'
   | 'resource'
   | 'magical-anomaly'
@@ -100,7 +102,16 @@ export interface MapFeature {
   pathHexIds?: string[]
   linkedNpcIds: EntityId[]
   linkedPinIds: EntityId[]
+  linkedMapDocumentId: EntityId | null
   notes: string
+}
+
+export interface MapLabel {
+  id: string
+  text: string
+  hexId: string
+  offsetX: number
+  offsetY: number
 }
 
 export interface MapGenerationSettings {
@@ -117,6 +128,7 @@ export interface MapGenerationSettings {
 }
 
 export interface MapDocument extends BaseEntity {
+  kind: 'world' | 'session'
   summaryMapId: EntityId | null
   name: string
   regionName: string
@@ -129,6 +141,7 @@ export interface MapDocument extends BaseEntity {
   parentHexId: string | null
   childMapIdsByHex: Record<string, EntityId>
   hexes: MapHexCell[]
+  labels: MapLabel[]
   features: MapFeature[]
   generationSettings: MapGenerationSettings
   cultureSummary: string
