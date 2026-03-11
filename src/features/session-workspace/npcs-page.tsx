@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAppState } from '@/features/core/store'
@@ -17,7 +16,11 @@ interface NpcQuickState {
 
 type WorkspaceNpcState = Record<string, NpcQuickState>
 
-export default function WorkspaceNpcsPage({ campaignId }: { campaignId: string }) {
+export default function WorkspaceNpcsPage({
+  campaignId,
+}: {
+  campaignId: string
+}) {
   const state = useAppState()
   const [search, setSearch] = useState('')
   const npcs = useMemo(() => {
@@ -31,24 +34,34 @@ export default function WorkspaceNpcsPage({ campaignId }: { campaignId: string }
         return JSON.stringify(npc).toLowerCase().includes(query)
       })
   }, [campaignId, search, state.npcs])
-  const [quickState, setQuickState] = useCampaignStorageState<WorkspaceNpcState>(
-    campaignId,
-    'workspace-npcs',
-    {},
-  )
+  const [quickState, setQuickState] =
+    useCampaignStorageState<WorkspaceNpcState>(campaignId, 'workspace-npcs', {})
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Workspace NPC Cards</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="h-full space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search workspace NPCs"
+          className="w-full sm:max-w-xs"
         />
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <Button size="sm" className="gap-1.5" asChild>
+            <Link
+              to="/campaigns/$campaignId/npc-database"
+              params={{ campaignId }}
+            >
+              Add NPC
+            </Link>
+          </Button>
+          <span className="rounded-md border bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+            {npcs.length}
+          </span>
+        </div>
+      </div>
 
+      <div className="h-full rounded-lg border border-dashed p-4">
         {npcs.length === 0 ? (
           <p className="text-sm text-muted-foreground">No NPCs available.</p>
         ) : (
@@ -164,7 +177,7 @@ export default function WorkspaceNpcsPage({ campaignId }: { campaignId: string }
             })}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

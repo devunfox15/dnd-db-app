@@ -14,16 +14,6 @@ describe('buildCampaignSectionSystemPrompt', () => {
     expect(prompt).toContain('roleplay hooks')
   })
 
-  it('includes map-focused guidance for map-builder section', () => {
-    const prompt = buildCampaignSectionSystemPrompt({
-      section: 'map-builder',
-      state: createSampleState(1),
-    })
-
-    expect(prompt).toContain('world areas')
-    expect(prompt).toContain('encounter geography')
-  })
-
   it('includes story-pin-focused guidance for story-pins section', () => {
     const prompt = buildCampaignSectionSystemPrompt({
       section: 'story-pins',

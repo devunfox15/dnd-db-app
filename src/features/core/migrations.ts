@@ -2,7 +2,7 @@ import { createEmptyPlayerCharacterSheet } from './player-character-sheet'
 import { createSampleState } from './sample-data'
 import type { AppState } from './types'
 
-export const currentVersion = 4
+export const currentVersion = 5
 
 export function createEmptyState(): AppState {
   return {
@@ -12,6 +12,7 @@ export function createEmptyState(): AppState {
     notes: [],
     pins: [],
     maps: [],
+    mapDocuments: [],
     npcs: [],
     playerCharacters: [],
     timelineEvents: [],
@@ -31,6 +32,7 @@ export function migrateState(input: unknown): AppState {
     'notes' in raw &&
     'pins' in raw &&
     'maps' in raw &&
+    'mapDocuments' in raw &&
     'npcs' in raw &&
     'playerCharacters' in raw &&
     'timelineEvents' in raw &&
@@ -76,6 +78,10 @@ export function migrateState(input: unknown): AppState {
         importFileName: character.importFileName ?? null,
         sheet: character.sheet ?? createEmptyPlayerCharacterSheet(),
       }))
+    : []
+
+  migrated.mapDocuments = Array.isArray(migrated.mapDocuments)
+    ? migrated.mapDocuments
     : []
 
   const validActiveCampaignId =

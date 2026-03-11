@@ -13,7 +13,6 @@ function RouteComponent() {
   const path = location.pathname
   const legacySectionLabelByPath: Record<string, string> = {
     '/campaigns/npc-characters': 'NPC Characters',
-    '/campaigns/map-builder': 'Map Builder',
     '/campaigns/story': 'Story',
   }
   const workspaceLabelBySegment: Record<string, string> = {

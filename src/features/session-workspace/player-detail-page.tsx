@@ -473,7 +473,10 @@ function isProficientWithWeapon(
   )
 }
 
-function pickWeaponAbility(item: PlayerCharacterInventoryItem, character: PlayerCharacter) {
+function pickWeaponAbility(
+  item: PlayerCharacterInventoryItem,
+  character: PlayerCharacter,
+) {
   const str = abilityModifier(character.abilityScores.str)
   const dex = abilityModifier(character.abilityScores.dex)
   const hasFinesse = item.properties?.some((property) =>
@@ -503,13 +506,20 @@ function formatAttackRange(item: PlayerCharacterInventoryItem) {
   return item.attackType === 2 ? 'Ranged' : 'Melee'
 }
 
-function formatAttackDamage(item: PlayerCharacterInventoryItem, abilityMod: number) {
+function formatAttackDamage(
+  item: PlayerCharacterInventoryItem,
+  abilityMod: number,
+) {
   if (!item.damage) {
     return null
   }
 
   const modPart =
-    abilityMod === 0 ? '' : abilityMod > 0 ? ` + ${abilityMod}` : ` - ${Math.abs(abilityMod)}`
+    abilityMod === 0
+      ? ''
+      : abilityMod > 0
+        ? ` + ${abilityMod}`
+        : ` - ${Math.abs(abilityMod)}`
   return `${item.damage}${modPart}${item.damageType ? ` ${item.damageType}` : ''}`
 }
 
@@ -519,9 +529,7 @@ function buildAttackNotes(item: PlayerCharacterInventoryItem) {
     .replace(/\s+/g, ' ')
     .trim()
 
-  return [...(item.properties ?? []), summary]
-    .filter(Boolean)
-    .join(' | ')
+  return [...(item.properties ?? []), summary].filter(Boolean).join(' | ')
 }
 
 function formatUnarmedDamage(abilityMod: number) {
@@ -568,8 +576,7 @@ function ActionList({ character }: { character: PlayerCharacter }) {
           character.sheet.proficienciesAndTraining,
         )
         const hitBonus =
-          abilityMod +
-          (proficient ? character.sheet.proficiencyBonus : 0)
+          abilityMod + (proficient ? character.sheet.proficiencyBonus : 0)
         const weaponType =
           entry.subtype ??
           (entry.weaponCategoryId === 1
@@ -866,13 +873,13 @@ export default function WorkspacePlayerDetailPage({
   return (
     <div className="flex h-full flex-col bg-stone-950 text-stone-100">
       {/* Header */}
-      <div className="border-b-2 border-amber-900/50 bg-gradient-to-r from-stone-950 via-stone-900/80 to-stone-950 px-5 py-4 flex-shrink-0">
+      <div className="border-b-2 border-amber-900/50 bg-linear-to-r from-stone-950 via-stone-900/80 to-stone-950 px-5 py-4 shrink-0">
         <div className="mb-3 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/60 to-transparent" />
+          <div className="h-px flex-1 bg-linear-to-r from-transparent via-amber-700/60 to-transparent" />
           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-amber-700">
             Character Sheet
           </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/60 to-transparent" />
+          <div className="h-px flex-1 bg-linear-to-r from-transparent via-amber-700/60 to-transparent" />
         </div>
 
         <div className="flex items-start justify-between gap-4">
@@ -925,7 +932,7 @@ export default function WorkspacePlayerDetailPage({
       </div>
 
       {/* Combat Stats Bar */}
-      <div className="flex-shrink-0 border-b border-amber-900/30 bg-stone-900/60 px-5 py-3">
+      <div className="shrink-0 border-b border-amber-900/30 bg-stone-900/60 px-5 py-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Stat Bubbles */}
           {[
@@ -957,7 +964,7 @@ export default function WorkspacePlayerDetailPage({
           ].map(({ label, value, color }) => (
             <div
               key={label}
-              className="flex min-w-[56px] flex-col items-center rounded-lg border-2 border-amber-800/60 bg-stone-900/80 px-3 py-2"
+              className="flex min-w-14 flex-col items-center rounded-lg border-2 border-amber-800/60 bg-stone-900/80 px-3 py-2"
             >
               <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-amber-700">
                 {label}
@@ -969,7 +976,7 @@ export default function WorkspacePlayerDetailPage({
           ))}
 
           {/* HP Section */}
-          <div className="flex min-w-[280px] flex-1 items-center gap-3 rounded-lg border border-red-900/40 bg-stone-900/60 px-4 py-2">
+          <div className="flex min-w-70 flex-1 items-center gap-3 rounded-lg border border-red-900/40 bg-stone-900/60 px-4 py-2">
             {/* Current HP */}
             <div className="flex flex-col items-center">
               <div className="text-[8px] font-black uppercase tracking-widest text-red-600">
@@ -982,7 +989,7 @@ export default function WorkspacePlayerDetailPage({
                 >
                   −
                 </button>
-                <span className="min-w-[2.5rem] text-center text-3xl font-black leading-none text-red-400">
+                <span className="min-w-10 text-center text-3xl font-black leading-none text-red-400">
                   {currentCharacter.currentHp}
                 </span>
                 <button
@@ -1020,9 +1027,9 @@ export default function WorkspacePlayerDetailPage({
                   onClick={() => adjustNumber('tempHp', -1)}
                   className="flex h-6 w-6 cursor-pointer items-center justify-center rounded border border-sky-900/60 text-sm font-black text-sky-400 transition-colors hover:bg-sky-950/60 hover:text-sky-300"
                 >
-                  −
+                  -
                 </button>
-                <span className="min-w-[1.5rem] text-center text-lg font-black leading-none text-sky-400">
+                <span className="min-w-6 text-center text-lg font-black leading-none text-sky-400">
                   {currentCharacter.tempHp}
                 </span>
                 <button
@@ -1040,7 +1047,7 @@ export default function WorkspacePlayerDetailPage({
       {/* Three-Column Body */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left Sidebar */}
-        <aside className="w-52 flex-shrink-0 overflow-y-auto border-r border-amber-900/30 bg-stone-950 lg:w-56">
+        <aside className="w-52 shrink-0 overflow-y-auto border-r border-amber-900/30 bg-stone-950 lg:w-56">
           <div className="space-y-4 p-3">
             <SidebarSection title="Ability Scores">
               <AbilityScoreColumn character={currentCharacter} />
@@ -1098,11 +1105,17 @@ export default function WorkspacePlayerDetailPage({
               <SpellList values={sheet.spells} />
             </TabsContent>
 
-            <TabsContent value="features" className="flex-1 overflow-y-auto p-4">
+            <TabsContent
+              value="features"
+              className="flex-1 overflow-y-auto p-4"
+            >
               <FeatureList values={sheet.featuresAndTraits} />
             </TabsContent>
 
-            <TabsContent value="inventory" className="flex-1 overflow-y-auto p-4">
+            <TabsContent
+              value="inventory"
+              className="flex-1 overflow-y-auto p-4"
+            >
               <InventoryList values={sheet.inventory} />
             </TabsContent>
 
@@ -1317,7 +1330,7 @@ export default function WorkspacePlayerDetailPage({
                   updateCharacter({ quickNotes: event.target.value })
                 }
                 placeholder="Notes for this session…"
-                className="min-h-[90px] border-amber-900/40 bg-stone-900/50 text-xs text-stone-300 placeholder:text-stone-700 focus:border-amber-700/50"
+                className="min-h-22.5 border-amber-900/40 bg-stone-900/50 text-xs text-stone-300 placeholder:text-stone-700 focus:border-amber-700/50"
               />
               {(refreshError || currentCharacter.importError) && (
                 <p className="mt-2 text-[10px] text-red-400">

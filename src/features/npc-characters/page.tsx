@@ -13,6 +13,7 @@ import type { NpcCharacter } from '@/features/core/types'
 import { NpcEditor } from '@/features/npc-characters/components/npc-editor'
 import { npcCharactersRepository } from '@/features/npc-characters/repository'
 import { useNpcs } from '@/features/npc-characters/store'
+import { cn } from '@/lib/utils'
 
 function newDraft(campaignId: string): NpcCharacter {
   const now = new Date().toISOString()
@@ -132,38 +133,61 @@ export default function FeaturePage({
 
   return (
     <CampaignSectionWithChat section="npc-characters">
-      <div className="grid w-full gap-3 ">
+      <div className="grid w-full gap-3">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="space-y-3 pb-2">
             <CardTitle className="text-base">NPC Characters</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search NPCs"
+                className="w-full sm:max-w-xs"
+              />
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <Button size="sm" className="gap-1.5" onClick={handleCreate}>
+                  Add NPC
+                </Button>
+                <span className="rounded-md border bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+                  {npcs.length}
+                </span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search NPCs"
-            />
-            <Button className="w-full" onClick={handleCreate}>
-              Create NPC
-            </Button>
-
-            <div className="space-y-1">
+            <div className="space-y-2">
               {npcs.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No NPCs yet.</p>
+                <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
+                  No NPCs yet.
+                </p>
               ) : (
                 npcs.map((npc) => (
                   <button
                     key={npc.id}
                     type="button"
-                    className="w-full rounded border px-2 py-1 text-left text-xs hover:bg-muted"
+                    className={cn(
+                      'w-full rounded-lg border bg-card px-3 py-3 text-left transition-colors hover:bg-muted/50',
+                      selectedId === npc.id &&
+                        !draft &&
+                        'border-primary/40 bg-muted/40 shadow-sm',
+                    )}
                     onClick={() => {
                       setDraft(null)
                       setSelectedId(npc.id)
                     }}
                   >
-                    <p className="font-medium">{npc.name}</p>
-                    <p className="text-muted-foreground">
-                      {npc.role || 'No role set'}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {npc.name}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {npc.role || 'No role set'}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-[11px] text-muted-foreground/60">
+                      {npc.faction || 'NPC Record'}
                     </p>
                   </button>
                 ))

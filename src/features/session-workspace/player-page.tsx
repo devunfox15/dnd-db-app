@@ -326,7 +326,7 @@ export default function WorkspacePlayerPage({
                     ].map(({ label, value, color }) => (
                       <div
                         key={label}
-                        className="flex min-w-[48px] flex-col items-center rounded border border-amber-900/40 bg-stone-900/60 px-2.5 py-1.5"
+                        className="flex min-w-12 flex-col items-center rounded border border-amber-900/40 bg-stone-900/60 px-2.5 py-1.5"
                       >
                         <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700">
                           {label}

@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import MapBuilderPage from '@/features/map-builder/page'
-
 export const Route = createFileRoute('/campaigns/$campaignId/location-database')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { campaignId } = Route.useParams()
-  return <MapBuilderPage campaignIdOverride={campaignId} />
+  return (
+    <div className="flex items-center justify-center rounded-lg border border-dashed p-12 text-muted-foreground">
+      <p className="text-sm">Map builder coming soon.</p>
+    </div>
+  )
 }

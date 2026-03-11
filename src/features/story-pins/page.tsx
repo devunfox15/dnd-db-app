@@ -40,8 +40,6 @@ function sourcePath(pin: StoryPin): string {
       return '/campaigns/game-timeline'
     case 'lookup':
       return '/rpg-rules'
-    case 'map':
-      return '/campaigns/map-builder'
     default:
       return '#'
   }

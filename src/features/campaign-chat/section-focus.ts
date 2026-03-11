@@ -6,8 +6,6 @@ export const campaignAssistantBaseline =
 export const sectionFocusPrompt: Record<CampaignChatSection, string> = {
   'npc-characters':
     'Focus on creating and refining NPCs, including motivation, roleplay hooks, factions, secrets, personality, and long-term arcs.',
-  'map-builder':
-    'Focus on building world areas, regions, landmarks, map continuity, travel logic, encounter geography, and area-level story use.',
   'story-pins':
     'Focus on strengthening story details, hooks, twists, clues, setup/payoff, and ways to make pins reusable and actionable in sessions.',
   'game-timeline':
@@ -18,8 +16,6 @@ export function sectionLabel(section: CampaignChatSection): string {
   switch (section) {
     case 'npc-characters':
       return 'NPC Characters'
-    case 'map-builder':
-      return 'Map Builder'
     case 'story-pins':
       return 'Story Pins'
     case 'game-timeline':

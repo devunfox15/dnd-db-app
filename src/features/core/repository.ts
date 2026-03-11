@@ -101,6 +101,7 @@ function routeSourceStillExists(sourceType: SourceType, sourceId: EntityId): boo
 function cleanupRelations(next: AppState): AppState {
   const pinIds = new Set(next.pins.map((pin) => pin.id))
   const mapIds = new Set(next.maps.map((map) => map.id))
+  const mapDocumentIds = new Set(next.mapDocuments.map((map) => map.id))
   const timelineIds = new Set(next.timelineEvents.map((event) => event.id))
   const noteIds = new Set(next.notes.map((note) => note.id))
   const npcIds = new Set(next.npcs.map((npc) => npc.id))
@@ -114,6 +115,20 @@ function cleanupRelations(next: AppState): AppState {
     ...map,
     usedNpcIds: map.usedNpcIds.filter((id) => npcIds.has(id)),
     linkedPinIds: map.linkedPinIds.filter((id) => pinIds.has(id)),
+  }))
+
+  next.mapDocuments = next.mapDocuments.map((map) => ({
+    ...map,
+    summaryMapId: map.summaryMapId && mapIds.has(map.summaryMapId) ? map.summaryMapId : null,
+    parentMapId: map.parentMapId && mapDocumentIds.has(map.parentMapId) ? map.parentMapId : null,
+    childMapIdsByHex: Object.fromEntries(
+      Object.entries(map.childMapIdsByHex).filter(([, childId]) => mapDocumentIds.has(childId))
+    ),
+    features: map.features.map((feature) => ({
+      ...feature,
+      linkedNpcIds: feature.linkedNpcIds.filter((id) => npcIds.has(id)),
+      linkedPinIds: feature.linkedPinIds.filter((id) => pinIds.has(id)),
+    })),
   }))
 
   next.npcs = next.npcs.map((npc) => ({
@@ -217,6 +232,7 @@ export const appRepository: Repository = {
     nextState.notes = nextState.notes.filter((note) => note.campaignId !== campaignId)
     nextState.pins = nextState.pins.filter((pin) => pin.campaignId !== campaignId)
     nextState.maps = nextState.maps.filter((map) => map.campaignId !== campaignId)
+    nextState.mapDocuments = nextState.mapDocuments.filter((map) => map.campaignId !== campaignId)
     nextState.npcs = nextState.npcs.filter((npc) => npc.campaignId !== campaignId)
     nextState.playerCharacters = nextState.playerCharacters.filter(
       (character) => character.campaignId !== campaignId

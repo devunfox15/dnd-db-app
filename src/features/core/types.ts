@@ -49,6 +49,91 @@ export interface MapRecord extends BaseEntity {
   usedInStory: boolean
 }
 
+export type MapScale = 'provincial' | 'kingdom' | 'continental'
+
+export type HexTerrain =
+  | 'water'
+  | 'coast'
+  | 'plains'
+  | 'forest'
+  | 'hills'
+  | 'mountains'
+  | 'desert'
+  | 'swamp'
+  | 'tundra'
+
+export type HexClimate =
+  | 'arid'
+  | 'temperate'
+  | 'humid'
+  | 'cold'
+  | 'alpine'
+
+export type MapFeatureKind =
+  | 'settlement'
+  | 'landmark'
+  | 'dungeon'
+  | 'resource'
+  | 'magical-anomaly'
+  | 'river'
+  | 'road'
+  | 'border'
+
+export interface MapHexCell {
+  id: string
+  q: number
+  r: number
+  terrain: HexTerrain
+  elevation: number
+  climate: HexClimate
+  travelDifficulty: number
+  notes: string
+  tags: string[]
+  resource: string | null
+}
+
+export interface MapFeature {
+  id: string
+  kind: MapFeatureKind
+  label: string
+  hexId: string
+  pathHexIds?: string[]
+  linkedNpcIds: EntityId[]
+  linkedPinIds: EntityId[]
+  notes: string
+}
+
+export interface MapGenerationSettings {
+  biomeBias: 'temperate' | 'arid' | 'cold' | 'wetlands' | 'frontier'
+  coastlineMode: 'coastal' | 'inland' | 'archipelago'
+  terrainRoughness: number
+  riverDensity: number
+  forestDensity: number
+  swampDensity: number
+  desertDensity: number
+  settlementDensity: number
+  civilizationAge: 'frontier' | 'established' | 'ancient'
+  fantasyIntensity: number
+}
+
+export interface MapDocument extends BaseEntity {
+  summaryMapId: EntityId | null
+  name: string
+  regionName: string
+  scale: MapScale
+  hexSizeMiles: number
+  width: number
+  height: number
+  seed: number
+  parentMapId: EntityId | null
+  parentHexId: string | null
+  childMapIdsByHex: Record<string, EntityId>
+  hexes: MapHexCell[]
+  features: MapFeature[]
+  generationSettings: MapGenerationSettings
+  cultureSummary: string
+}
+
 export interface NpcCharacter extends BaseEntity {
   name: string
   role: string
@@ -280,6 +365,7 @@ export interface AppState {
   notes: DmNote[]
   pins: StoryPin[]
   maps: MapRecord[]
+  mapDocuments: MapDocument[]
   npcs: NpcCharacter[]
   playerCharacters: PlayerCharacter[]
   timelineEvents: TimelineEvent[]
@@ -293,6 +379,7 @@ export type EntityByCollection = {
   notes: DmNote
   pins: StoryPin
   maps: MapRecord
+  mapDocuments: MapDocument
   npcs: NpcCharacter
   playerCharacters: PlayerCharacter
   timelineEvents: TimelineEvent

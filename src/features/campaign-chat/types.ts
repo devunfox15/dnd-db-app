@@ -2,7 +2,6 @@ import type { AppState } from '@/features/core/types'
 
 export const campaignChatSections = [
   'npc-characters',
-  'map-builder',
   'story-pins',
   'game-timeline',
 ] as const

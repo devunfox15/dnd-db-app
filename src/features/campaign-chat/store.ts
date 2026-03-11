@@ -7,7 +7,6 @@ const MESSAGE_LIMIT = 30
 function emptyState(): ChatStoreState {
   return {
     'npc-characters': [],
-    'map-builder': [],
     'story-pins': [],
     'game-timeline': [],
   }

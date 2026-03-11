@@ -19,12 +19,12 @@ describe('campaign chat store', () => {
 
   it('stores section messages independently', () => {
     saveSectionMessages('npc-characters', [makeMessage('npc-1')])
-    saveSectionMessages('map-builder', [makeMessage('map-1')])
+    saveSectionMessages('story-pins', [makeMessage('pin-1')])
 
     const state = getCampaignChatState()
     expect(state['npc-characters']).toHaveLength(1)
-    expect(state['map-builder']).toHaveLength(1)
-    expect(state['story-pins']).toHaveLength(0)
+    expect(state['story-pins']).toHaveLength(1)
+    expect(state['game-timeline']).toHaveLength(0)
   })
 
   it('clearing one section does not clear others', () => {

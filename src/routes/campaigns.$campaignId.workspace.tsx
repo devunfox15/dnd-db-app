@@ -48,7 +48,7 @@ export const Route = createFileRoute('/campaigns/$campaignId/workspace')({
   component: RouteComponent,
 })
 
-function RouteComponent() {
+export function RouteComponent() {
   const { campaignId } = Route.useParams()
   const location = useLocation()
 
@@ -58,35 +58,39 @@ function RouteComponent() {
   const showNav = segments.length === 5 && segments[3] === 'workspace'
 
   return (
-    <div className="h-full space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       {showNav && (
-        <div className="inline-flex items-center gap-1 rounded-xl border bg-card p-1 shadow-sm">
-          {workspaceLinks.map((link) => {
-            const Icon = link.icon
-            const active =
-              location.pathname ===
-                link.to.replace('$campaignId', campaignId) ||
-              location.pathname ===
-                link.to.replace('$campaignId', campaignId) + '/'
-            return (
-              <Link key={link.segment} to={link.to} params={{ campaignId }}>
-                <span
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
-                    active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {link.label}
-                </span>
-              </Link>
-            )
-          })}
+        <div className="shrink-0">
+          <div className="inline-flex items-center gap-1 rounded-xl border bg-card p-1 shadow-sm">
+            {workspaceLinks.map((link) => {
+              const Icon = link.icon
+              const active =
+                location.pathname ===
+                  link.to.replace('$campaignId', campaignId) ||
+                location.pathname ===
+                  link.to.replace('$campaignId', campaignId) + '/'
+              return (
+                <Link key={link.segment} to={link.to} params={{ campaignId }}>
+                  <span
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
+                      active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {link.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
 
-      <Outlet />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Outlet />
+      </div>
     </div>
   )
 }
