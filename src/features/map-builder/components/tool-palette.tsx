@@ -3,7 +3,9 @@ import {
   Eraser,
   Hand,
   MapPin,
+  Minus,
   MousePointer2,
+  Plus,
   Type,
 } from 'lucide-react'
 
@@ -24,6 +26,8 @@ const toolDefinitions: Array<{
 }> = [
   { tool: 'pan', label: 'Pan Tool', icon: Hand },
   { tool: 'select', label: 'Select Tool', icon: MousePointer2 },
+  { tool: 'expand', label: 'Expand Tool', icon: Plus },
+  { tool: 'carve', label: 'Carve Tool', icon: Minus },
   { tool: 'terrain', label: 'Terrain Brush', icon: Brush },
   { tool: 'erase', label: 'Erase Tool', icon: Eraser },
   { tool: 'label', label: 'Label Tool', icon: Type },

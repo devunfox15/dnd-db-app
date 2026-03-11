@@ -7,7 +7,10 @@ import {
   addLabelToHex,
   createMapScaffold,
   createLocationPin,
+  eraseHexContent,
+  expandHexGrid,
   paintHexTerrain,
+  removeHexFromGrid,
 } from '@/features/map-builder/document-actions'
 import MapBuilderPage from '@/features/map-builder/page'
 import { createEmptyState } from '@/features/core/migrations'
@@ -84,6 +87,18 @@ function buildMapState() {
           r: 0,
           terrain: 'plains',
           elevation: 0.1,
+          climate: 'temperate',
+          travelDifficulty: 1,
+          notes: '',
+          tags: [],
+          resource: null,
+        },
+        {
+          id: 'hex-1-0',
+          q: 1,
+          r: 0,
+          terrain: 'forest',
+          elevation: 0.2,
           climate: 'temperate',
           travelDifficulty: 1,
           notes: '',
@@ -198,18 +213,17 @@ describe('MapBuilderPage', () => {
     resetRepositoryStateForTests(buildMapState())
   })
 
-  it('renders world and session tabs with the requested initial mode', () => {
-    const worldMarkup = renderToStaticMarkup(
+  it('renders the document-driven builder shell', () => {
+    const markup = renderToStaticMarkup(
       <MapBuilderPage campaignId="campaign-1" initialMode="world" />,
     )
-    const sessionMarkup = renderToStaticMarkup(
-      <MapBuilderPage campaignId="campaign-1" initialMode="session" />,
-    )
 
-    expect(worldMarkup).toContain('Hex Map Builder')
-    expect(worldMarkup).toContain('data-state="active"')
-    expect(worldMarkup).toContain('Greenhollow March')
-    expect(sessionMarkup).toContain('Ruined Tower')
+    expect(markup).toContain('Hex Map Builder')
+    expect(markup).toContain('Map Inspector')
+    expect(markup).toContain('Pan Tool')
+    expect(markup).toContain('Expand Tool')
+    expect(markup).toContain('Carve Tool')
+    expect(markup).toContain('data-testid="map-canvas"')
   })
 
   it('renders the linked-session quick view inside the inspector', () => {
@@ -245,7 +259,7 @@ describe('MapBuilderPage', () => {
     expect(markup).toContain('Ruined Tower')
   })
 
-  it('updates terrain, labels, and pins through reusable document actions', () => {
+  it('updates terrain, labels, pins, and erase patches through document actions', () => {
     const document = buildMapState().mapDocuments[0]
     const terrainPatch = paintHexTerrain(document, 'hex-0-0', 'mountains')
     const labelPatch = addLabelToHex(document, 'hex-0-0', 'North Gate', 'label-1')
@@ -256,29 +270,75 @@ describe('MapBuilderPage', () => {
       linkedMapDocumentId: 'doc-session',
       name: 'Bandit Camp',
     })
+    const erasePatch = eraseHexContent(document, 'hex-0-0')
 
     expect(terrainPatch.hexes[0]?.terrain).toBe('mountains')
     expect(labelPatch.labels[0]?.text).toBe('North Gate')
     expect(pinPatch.feature.linkedMapDocumentId).toBe('doc-session')
+    expect(erasePatch.hexes[0]?.terrain).toBe('plains')
+    expect(erasePatch.features).toHaveLength(0)
+  })
 
-    const canvasMarkup = renderToStaticMarkup(
+  it('adds adjacent hexes through the expand action', () => {
+    const document = buildMapState().mapDocuments[0]
+    const patch = expandHexGrid(document, { q: 0, r: 1 }, 'hills')
+
+    expect(patch).not.toBeNull()
+    expect(patch?.hexes.some((hex) => hex.q === 0 && hex.r === 1)).toBe(true)
+    expect(patch?.hexes.find((hex) => hex.q === 0 && hex.r === 1)?.terrain).toBe(
+      'hills',
+    )
+  })
+
+  it('ignores non-adjacent or duplicate expansion targets', () => {
+    const document = buildMapState().mapDocuments[0]
+
+    expect(expandHexGrid(document, { q: 5, r: 5 }, 'hills')).toBeNull()
+    expect(expandHexGrid(document, { q: 0, r: 0 }, 'hills')).toBeNull()
+  })
+
+  it('removes filled hexes and their linked content through the carve action', () => {
+    const document = buildMapState().mapDocuments[0]
+    const patch = removeHexFromGrid(document, 'hex-0-0')
+
+    expect(patch).not.toBeNull()
+    expect(patch?.hexes.some((hex) => hex.id === 'hex-0-0')).toBe(false)
+    expect(patch?.features).toHaveLength(0)
+    expect(patch?.childMapIdsByHex['hex-0-0']).toBeUndefined()
+  })
+
+  it('does not remove the last remaining hex', () => {
+    const document = buildMapState().mapDocuments[1]
+
+    expect(removeHexFromGrid(document, 'hex-s-0-0')).toBeNull()
+  })
+
+  it('renders a document-driven map canvas shell', () => {
+    const document = buildMapState().mapDocuments[0]
+    const markup = renderToStaticMarkup(
       <MapCanvas
-        document={{
-          ...document,
-          hexes: terrainPatch.hexes,
-          labels: labelPatch.labels,
-          features: [...document.features, pinPatch.feature],
-        }}
-        selectedFeatureId="feature-2"
-        selectedHexId="hex-0-0"
+        activeTool="label"
+        currentDocument={document}
+        draftLabelText=""
+        draftPinName=""
+        linkedSessionDocumentId={null}
+        selectedFeatureId={null}
+        selectedHexId={null}
+        selectedTerrain="forest"
+        onAddLabel={() => {}}
+        onAddPin={() => {}}
+        onEraseHex={() => {}}
+        onExpandHex={() => {}}
         onFeatureSelect={() => {}}
         onHexSelect={() => {}}
+        onRemoveHex={() => {}}
+        onPaintHex={() => {}}
       />,
     )
 
-    expect(canvasMarkup).toContain('data-terrain="mountains"')
-    expect(canvasMarkup).toContain('North Gate')
-    expect(canvasMarkup).toContain('Bandit Camp')
+    expect(markup).toContain('data-testid="map-canvas"')
+    expect(markup).toContain('forest')
+    expect(markup).toContain('kingdom')
   })
 
   it('renders create actions for campaigns that do not have any maps yet', () => {
@@ -301,6 +361,8 @@ describe('MapBuilderPage', () => {
     expect(worldScaffold.document.hexes.length).toBeGreaterThan(0)
     expect(sessionScaffold.map.kind).toBe('session')
     expect(sessionScaffold.document.kind).toBe('session')
-    expect(sessionScaffold.document.width).toBeLessThanOrEqual(worldScaffold.document.width)
+    expect(sessionScaffold.document.width).toBeLessThanOrEqual(
+      worldScaffold.document.width,
+    )
   })
 })

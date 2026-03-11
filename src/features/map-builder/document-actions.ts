@@ -7,6 +7,15 @@ import type {
 
 import type { MapBuilderMode, ResolvedMapDocument } from './types'
 
+const HEX_DIRECTIONS = [
+  { q: 1, r: 0 },
+  { q: 1, r: -1 },
+  { q: 0, r: -1 },
+  { q: -1, r: 0 },
+  { q: -1, r: 1 },
+  { q: 0, r: 1 },
+] as const
+
 const buildHexGrid = (
   width: number,
   height: number,
@@ -74,6 +83,89 @@ export const addLabelToHex = (
     },
   ],
 })
+
+export const expandHexGrid = (
+  document: ResolvedMapDocument,
+  axial: { q: number; r: number },
+  terrain: HexTerrain,
+):
+  | Pick<ResolvedMapDocument, 'hexes' | 'width' | 'height'>
+  | null => {
+  const occupied = new Set(document.hexes.map((hex) => `${hex.q},${hex.r}`))
+  const key = `${axial.q},${axial.r}`
+
+  if (occupied.has(key)) {
+    return null
+  }
+
+  const hasNeighbor = HEX_DIRECTIONS.some((direction) =>
+    occupied.has(`${axial.q + direction.q},${axial.r + direction.r}`),
+  )
+
+  if (!hasNeighbor) {
+    return null
+  }
+
+  const nextHexes = [
+    ...document.hexes,
+    {
+      id: `hex-${axial.q}-${axial.r}`,
+      q: axial.q,
+      r: axial.r,
+      terrain,
+      elevation: terrain === 'mountains' ? 0.6 : 0.2,
+      climate: 'temperate' as const,
+      travelDifficulty: terrain === 'mountains' ? 3 : 1,
+      notes: '',
+      tags: [],
+      resource: null,
+    },
+  ]
+
+  const qValues = nextHexes.map((hex) => hex.q)
+  const rValues = nextHexes.map((hex) => hex.r)
+
+  return {
+    hexes: nextHexes,
+    width: Math.max(...qValues) - Math.min(...qValues) + 1,
+    height: Math.max(...rValues) - Math.min(...rValues) + 1,
+  }
+}
+
+export const removeHexFromGrid = (
+  document: ResolvedMapDocument,
+  hexId: string,
+):
+  | Pick<
+      ResolvedMapDocument,
+      'childMapIdsByHex' | 'features' | 'hexes' | 'height' | 'labels' | 'width'
+    >
+  | null => {
+  if (document.hexes.length <= 1) {
+    return null
+  }
+
+  const target = document.hexes.find((hex) => hex.id === hexId)
+  if (!target) {
+    return null
+  }
+
+  const nextHexes = document.hexes.filter((hex) => hex.id !== hexId)
+  const nextChildMaps = { ...document.childMapIdsByHex }
+  delete nextChildMaps[hexId]
+
+  const qValues = nextHexes.map((hex) => hex.q)
+  const rValues = nextHexes.map((hex) => hex.r)
+
+  return {
+    childMapIdsByHex: nextChildMaps,
+    features: document.features.filter((feature) => feature.hexId !== hexId),
+    hexes: nextHexes,
+    labels: document.labels.filter((label) => label.hexId !== hexId),
+    width: Math.max(...qValues) - Math.min(...qValues) + 1,
+    height: Math.max(...rValues) - Math.min(...rValues) + 1,
+  }
+}
 
 export const createLocationPin = ({
   document,

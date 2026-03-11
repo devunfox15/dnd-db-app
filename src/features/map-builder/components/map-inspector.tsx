@@ -200,6 +200,20 @@ export const MapInspector = ({
         </div>
       ) : null}
 
+      {activeTool === 'expand' ? (
+        <p className="text-sm text-muted-foreground">
+          Click a highlighted neighboring slot to grow the map by one hex using
+          the currently selected terrain.
+        </p>
+      ) : null}
+
+      {activeTool === 'carve' ? (
+        <p className="text-sm text-muted-foreground">
+          Drag across filled hexes to remove them from the grid. Any labels,
+          pins, and child links on those hexes are removed too.
+        </p>
+      ) : null}
+
       {activeTool === 'pan' || activeTool === 'select' || activeTool === 'erase' ? (
         <p className="text-sm text-muted-foreground">
           {activeTool === 'erase'
