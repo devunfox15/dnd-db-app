@@ -22,7 +22,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
@@ -61,9 +60,9 @@ export function DmAppLayout({
   }, [])
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh overflow-hidden">
       <AppSidebar />
-      <SidebarInset className="relative min-h-svh overflow-hidden md:peer-data-[variant=inset]:mt-0">
+      <SidebarInset className="relative flex flex-col overflow-hidden md:peer-data-[variant=inset]:mt-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1 rounded-xl text-sm font-medium mr-2" />
 
@@ -103,7 +102,7 @@ export function DmAppLayout({
           </div>
         </header>
 
-        <section className="min-h-0 flex-1 overflow-y-auto p-4">
+        <section className="min-h-0 flex-1 overflow-hidden p-4">
           {children}
         </section>
         {shouldRenderDiceUi && isCampaignRoute ? <DiceTray /> : null}

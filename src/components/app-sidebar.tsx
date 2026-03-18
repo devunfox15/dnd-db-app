@@ -12,7 +12,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { Compass, House, LucideProps, Notebook } from 'lucide-react'
+import { Compass, House, LucideProps, Map, Notebook } from 'lucide-react'
 export type LucideIcon = React.ForwardRefExoticComponent<
   Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
 >
@@ -37,6 +37,11 @@ const data = {
       title: 'Campaigns',
       url: '/campaigns',
       icon: Notebook,
+    },
+    {
+      title: 'Maps',
+      url: '/maps',
+      icon: Map,
     },
   ],
 }

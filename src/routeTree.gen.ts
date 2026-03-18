@@ -10,11 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RpgsRouteImport } from './routes/rpgs'
+import { Route as MapsRouteImport } from './routes/maps'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RpgsIndexRouteImport } from './routes/rpgs.index'
+import { Route as MapsIndexRouteImport } from './routes/maps.index'
 import { Route as CampaignsIndexRouteImport } from './routes/campaigns.index'
 import { Route as RpgsDndRouteImport } from './routes/rpgs.dnd'
+import { Route as MapsMapIdRouteImport } from './routes/maps.$mapId'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
 import { Route as CampaignsCampaignIdIndexRouteImport } from './routes/campaigns.$campaignId.index'
 import { Route as CampaignsCampaignIdWorkspaceRouteImport } from './routes/campaigns.$campaignId.workspace'
@@ -41,6 +44,11 @@ const RpgsRoute = RpgsRouteImport.update({
   path: '/rpgs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MapsRoute = MapsRouteImport.update({
+  id: '/maps',
+  path: '/maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampaignsRoute = CampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
@@ -56,6 +64,11 @@ const RpgsIndexRoute = RpgsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => RpgsRoute,
 } as any)
+const MapsIndexRoute = MapsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MapsRoute,
+} as any)
 const CampaignsIndexRoute = CampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -65,6 +78,11 @@ const RpgsDndRoute = RpgsDndRouteImport.update({
   id: '/dnd',
   path: '/dnd',
   getParentRoute: () => RpgsRoute,
+} as any)
+const MapsMapIdRoute = MapsMapIdRouteImport.update({
+  id: '/$mapId',
+  path: '/$mapId',
+  getParentRoute: () => MapsRoute,
 } as any)
 const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
   id: '/$campaignId',
@@ -191,10 +209,13 @@ const CampaignsCampaignIdWorkspacePlayerCharactersPlayerCharacterIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/maps': typeof MapsRouteWithChildren
   '/rpgs': typeof RpgsRouteWithChildren
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
+  '/maps/$mapId': typeof MapsMapIdRoute
   '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns/': typeof CampaignsIndexRoute
+  '/maps/': typeof MapsIndexRoute
   '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -218,8 +239,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/maps/$mapId': typeof MapsMapIdRoute
   '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns': typeof CampaignsIndexRoute
+  '/maps': typeof MapsIndexRoute
   '/rpgs': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -242,10 +265,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/maps': typeof MapsRouteWithChildren
   '/rpgs': typeof RpgsRouteWithChildren
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRouteWithChildren
+  '/maps/$mapId': typeof MapsMapIdRoute
   '/rpgs/dnd': typeof RpgsDndRoute
   '/campaigns/': typeof CampaignsIndexRoute
+  '/maps/': typeof MapsIndexRoute
   '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
   '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
@@ -272,10 +298,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/campaigns'
+    | '/maps'
     | '/rpgs'
     | '/campaigns/$campaignId'
+    | '/maps/$mapId'
     | '/rpgs/dnd'
     | '/campaigns/'
+    | '/maps/'
     | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -299,8 +328,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/maps/$mapId'
     | '/rpgs/dnd'
     | '/campaigns'
+    | '/maps'
     | '/rpgs'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -322,10 +353,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/campaigns'
+    | '/maps'
     | '/rpgs'
     | '/campaigns/$campaignId'
+    | '/maps/$mapId'
     | '/rpgs/dnd'
     | '/campaigns/'
+    | '/maps/'
     | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
     | '/campaigns/$campaignId/location-database'
@@ -351,6 +385,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CampaignsRoute: typeof CampaignsRouteWithChildren
+  MapsRoute: typeof MapsRouteWithChildren
   RpgsRoute: typeof RpgsRouteWithChildren
 }
 
@@ -361,6 +396,13 @@ declare module '@tanstack/react-router' {
       path: '/rpgs'
       fullPath: '/rpgs'
       preLoaderRoute: typeof RpgsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maps': {
+      id: '/maps'
+      path: '/maps'
+      fullPath: '/maps'
+      preLoaderRoute: typeof MapsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campaigns': {
@@ -384,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RpgsIndexRouteImport
       parentRoute: typeof RpgsRoute
     }
+    '/maps/': {
+      id: '/maps/'
+      path: '/'
+      fullPath: '/maps/'
+      preLoaderRoute: typeof MapsIndexRouteImport
+      parentRoute: typeof MapsRoute
+    }
     '/campaigns/': {
       id: '/campaigns/'
       path: '/'
@@ -397,6 +446,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/rpgs/dnd'
       preLoaderRoute: typeof RpgsDndRouteImport
       parentRoute: typeof RpgsRoute
+    }
+    '/maps/$mapId': {
+      id: '/maps/$mapId'
+      path: '/$mapId'
+      fullPath: '/maps/$mapId'
+      preLoaderRoute: typeof MapsMapIdRouteImport
+      parentRoute: typeof MapsRoute
     }
     '/campaigns/$campaignId': {
       id: '/campaigns/$campaignId'
@@ -655,6 +711,18 @@ const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
   CampaignsRouteChildren,
 )
 
+interface MapsRouteChildren {
+  MapsMapIdRoute: typeof MapsMapIdRoute
+  MapsIndexRoute: typeof MapsIndexRoute
+}
+
+const MapsRouteChildren: MapsRouteChildren = {
+  MapsMapIdRoute: MapsMapIdRoute,
+  MapsIndexRoute: MapsIndexRoute,
+}
+
+const MapsRouteWithChildren = MapsRoute._addFileChildren(MapsRouteChildren)
+
 interface RpgsRouteChildren {
   RpgsDndRoute: typeof RpgsDndRoute
   RpgsIndexRoute: typeof RpgsIndexRoute
@@ -670,6 +738,7 @@ const RpgsRouteWithChildren = RpgsRoute._addFileChildren(RpgsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CampaignsRoute: CampaignsRouteWithChildren,
+  MapsRoute: MapsRouteWithChildren,
   RpgsRoute: RpgsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
