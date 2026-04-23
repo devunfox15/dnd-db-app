@@ -70,15 +70,26 @@ export function DashboardSummary() {
                     {rpgLabel(activeCampaign.rpgSystem)}
                   </p>
                 </div>
-                <Link
-                  to="/campaigns/$campaignId"
-                  params={{ campaignId: activeCampaign.id }}
-                >
-                  <Button className="gap-2">
-                    <PlayCircleIcon className="size-4" />
-                    Resume Campaign
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/campaigns/$campaignId"
+                    params={{ campaignId: activeCampaign.id }}
+                  >
+                    <Button className="gap-2">
+                      <PlayCircleIcon className="size-4" />
+                      Resume Campaign
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/campaigns/$campaignId/workspace/sessions"
+                    params={{ campaignId: activeCampaign.id }}
+                  >
+                    <Button variant="secondary" className="gap-2">
+                      <PlayCircleIcon className="size-4" />
+                      Start Session
+                    </Button>
+                  </Link>
+                </div>
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
