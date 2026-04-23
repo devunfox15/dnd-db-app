@@ -8,9 +8,9 @@ interface DiceRollGroup {
 
 export const DICE_BOX_THEME = 'default'
 export const DICE_BOX_THEME_COLOR = '#000000'
-export const DICE_BOX_SCALE = 6
-export const DICE_CANVAS_HEIGHT_CLASS = 'absolute inset-0'
-export const DICE_BOX_THROW_FORCE = 2
+export const DICE_BOX_SCALE = 18
+export const DICE_CANVAS_HEIGHT_CLASS = 'h-full w-full'
+export const DICE_BOX_THROW_FORCE = 2.8
 export const DICE_BOX_STARTING_HEIGHT = 3.5
 export const DICE_BOX_SIZE = 12
 export const DICE_BOX_RESTITUTION = 0.5

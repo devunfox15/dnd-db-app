@@ -60,7 +60,7 @@ export function DmAppLayout({
   }, [])
 
   return (
-    <SidebarProvider className="h-svh overflow-hidden">
+    <SidebarProvider className="min-h-svh overflow-hidden">
       <AppSidebar />
       <SidebarInset className="relative flex flex-col overflow-hidden md:peer-data-[variant=inset]:mt-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
@@ -102,7 +102,7 @@ export function DmAppLayout({
           </div>
         </header>
 
-        <section className="min-h-0 flex-1 overflow-hidden p-4">
+        <section className="min-h-0 flex-1 overflow-y-auto p-4">
           {children}
         </section>
         {shouldRenderDiceUi && isCampaignRoute ? <DiceTray /> : null}
