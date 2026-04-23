@@ -67,13 +67,13 @@ describe('SessionDetailPage', () => {
     seedCampaign()
   })
 
-  it('renders the session title and the planner, dm-screen, and log tab labels', () => {
+  it('renders the session title and the planner + dm-screen tab labels', () => {
     try {
       render(createElement(SessionDetailPage, { campaignId, sessionId }))
       expect(screen.getByText('The Broken Anvil')).toBeDefined()
       expect(screen.getByText('Planner')).toBeDefined()
       expect(screen.getByText('DM Screen')).toBeDefined()
-      expect(screen.getByText('Log')).toBeDefined()
+      expect(screen.queryByText('Log')).toBeNull()
     } finally {
       cleanup()
     }
