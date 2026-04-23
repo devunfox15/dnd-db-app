@@ -23,7 +23,6 @@ import { Route as CampaignsCampaignIdIndexRouteImport } from './routes/campaigns
 import { Route as CampaignsCampaignIdWorkspaceRouteImport } from './routes/campaigns.$campaignId.workspace'
 import { Route as CampaignsCampaignIdNpcDatabaseRouteImport } from './routes/campaigns.$campaignId.npc-database'
 import { Route as CampaignsCampaignIdLoreSecretsDatabaseRouteImport } from './routes/campaigns.$campaignId.lore-secrets-database'
-import { Route as CampaignsCampaignIdLocationDatabaseRouteImport } from './routes/campaigns.$campaignId.location-database'
 import { Route as CampaignsCampaignIdEncounterLibraryRouteImport } from './routes/campaigns.$campaignId.encounter-library'
 import { Route as CampaignsCampaignIdWorkspaceIndexRouteImport } from './routes/campaigns.$campaignId.workspace.index'
 import { Route as CampaignsCampaignIdWorkspaceSessionsRouteImport } from './routes/campaigns.$campaignId.workspace.sessions'
@@ -31,7 +30,6 @@ import { Route as CampaignsCampaignIdWorkspaceSecretsRouteImport } from './route
 import { Route as CampaignsCampaignIdWorkspaceSceneNotesRouteImport } from './routes/campaigns.$campaignId.workspace.scene-notes'
 import { Route as CampaignsCampaignIdWorkspacePlayerCharactersRouteImport } from './routes/campaigns.$campaignId.workspace.player-characters'
 import { Route as CampaignsCampaignIdWorkspaceNpcsRouteImport } from './routes/campaigns.$campaignId.workspace.npcs'
-import { Route as CampaignsCampaignIdWorkspaceLocationsRouteImport } from './routes/campaigns.$campaignId.workspace.locations'
 import { Route as CampaignsCampaignIdWorkspaceEncountersRouteImport } from './routes/campaigns.$campaignId.workspace.encounters'
 import { Route as CampaignsCampaignIdWorkspaceDmScreenRouteImport } from './routes/campaigns.$campaignId.workspace.dm-screen'
 import { Route as CampaignsCampaignIdWorkspaceSessionsIndexRouteImport } from './routes/campaigns.$campaignId.workspace.sessions.index'
@@ -113,12 +111,6 @@ const CampaignsCampaignIdLoreSecretsDatabaseRoute =
     path: '/lore-secrets-database',
     getParentRoute: () => CampaignsCampaignIdRoute,
   } as any)
-const CampaignsCampaignIdLocationDatabaseRoute =
-  CampaignsCampaignIdLocationDatabaseRouteImport.update({
-    id: '/location-database',
-    path: '/location-database',
-    getParentRoute: () => CampaignsCampaignIdRoute,
-  } as any)
 const CampaignsCampaignIdEncounterLibraryRoute =
   CampaignsCampaignIdEncounterLibraryRouteImport.update({
     id: '/encounter-library',
@@ -159,12 +151,6 @@ const CampaignsCampaignIdWorkspaceNpcsRoute =
   CampaignsCampaignIdWorkspaceNpcsRouteImport.update({
     id: '/npcs',
     path: '/npcs',
-    getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
-  } as any)
-const CampaignsCampaignIdWorkspaceLocationsRoute =
-  CampaignsCampaignIdWorkspaceLocationsRouteImport.update({
-    id: '/locations',
-    path: '/locations',
     getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
   } as any)
 const CampaignsCampaignIdWorkspaceEncountersRoute =
@@ -218,14 +204,12 @@ export interface FileRoutesByFullPath {
   '/maps/': typeof MapsIndexRoute
   '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
-  '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
   '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceRouteWithChildren
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
-  '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/player-characters': typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -245,13 +229,11 @@ export interface FileRoutesByTo {
   '/maps': typeof MapsIndexRoute
   '/rpgs': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
-  '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
-  '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   '/campaigns/$campaignId/workspace/secrets': typeof CampaignsCampaignIdWorkspaceSecretsRoute
@@ -274,14 +256,12 @@ export interface FileRoutesById {
   '/maps/': typeof MapsIndexRoute
   '/rpgs/': typeof RpgsIndexRoute
   '/campaigns/$campaignId/encounter-library': typeof CampaignsCampaignIdEncounterLibraryRoute
-  '/campaigns/$campaignId/location-database': typeof CampaignsCampaignIdLocationDatabaseRoute
   '/campaigns/$campaignId/lore-secrets-database': typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
   '/campaigns/$campaignId/npc-database': typeof CampaignsCampaignIdNpcDatabaseRoute
   '/campaigns/$campaignId/workspace': typeof CampaignsCampaignIdWorkspaceRouteWithChildren
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
-  '/campaigns/$campaignId/workspace/locations': typeof CampaignsCampaignIdWorkspaceLocationsRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/player-characters': typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -307,14 +287,12 @@ export interface FileRouteTypes {
     | '/maps/'
     | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
-    | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
     | '/campaigns/$campaignId/npc-database'
     | '/campaigns/$campaignId/workspace'
     | '/campaigns/$campaignId/'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
-    | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/player-characters'
     | '/campaigns/$campaignId/workspace/scene-notes'
@@ -334,13 +312,11 @@ export interface FileRouteTypes {
     | '/maps'
     | '/rpgs'
     | '/campaigns/$campaignId/encounter-library'
-    | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
     | '/campaigns/$campaignId/npc-database'
     | '/campaigns/$campaignId'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
-    | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/scene-notes'
     | '/campaigns/$campaignId/workspace/secrets'
@@ -362,14 +338,12 @@ export interface FileRouteTypes {
     | '/maps/'
     | '/rpgs/'
     | '/campaigns/$campaignId/encounter-library'
-    | '/campaigns/$campaignId/location-database'
     | '/campaigns/$campaignId/lore-secrets-database'
     | '/campaigns/$campaignId/npc-database'
     | '/campaigns/$campaignId/workspace'
     | '/campaigns/$campaignId/'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
-    | '/campaigns/$campaignId/workspace/locations'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/player-characters'
     | '/campaigns/$campaignId/workspace/scene-notes'
@@ -489,13 +463,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsCampaignIdLoreSecretsDatabaseRouteImport
       parentRoute: typeof CampaignsCampaignIdRoute
     }
-    '/campaigns/$campaignId/location-database': {
-      id: '/campaigns/$campaignId/location-database'
-      path: '/location-database'
-      fullPath: '/campaigns/$campaignId/location-database'
-      preLoaderRoute: typeof CampaignsCampaignIdLocationDatabaseRouteImport
-      parentRoute: typeof CampaignsCampaignIdRoute
-    }
     '/campaigns/$campaignId/encounter-library': {
       id: '/campaigns/$campaignId/encounter-library'
       path: '/encounter-library'
@@ -543,13 +510,6 @@ declare module '@tanstack/react-router' {
       path: '/npcs'
       fullPath: '/campaigns/$campaignId/workspace/npcs'
       preLoaderRoute: typeof CampaignsCampaignIdWorkspaceNpcsRouteImport
-      parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
-    }
-    '/campaigns/$campaignId/workspace/locations': {
-      id: '/campaigns/$campaignId/workspace/locations'
-      path: '/locations'
-      fullPath: '/campaigns/$campaignId/workspace/locations'
-      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceLocationsRouteImport
       parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
     }
     '/campaigns/$campaignId/workspace/encounters': {
@@ -636,7 +596,6 @@ const CampaignsCampaignIdWorkspaceSessionsRouteWithChildren =
 interface CampaignsCampaignIdWorkspaceRouteChildren {
   CampaignsCampaignIdWorkspaceDmScreenRoute: typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   CampaignsCampaignIdWorkspaceEncountersRoute: typeof CampaignsCampaignIdWorkspaceEncountersRoute
-  CampaignsCampaignIdWorkspaceLocationsRoute: typeof CampaignsCampaignIdWorkspaceLocationsRoute
   CampaignsCampaignIdWorkspaceNpcsRoute: typeof CampaignsCampaignIdWorkspaceNpcsRoute
   CampaignsCampaignIdWorkspacePlayerCharactersRoute: typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   CampaignsCampaignIdWorkspaceSceneNotesRoute: typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -651,8 +610,6 @@ const CampaignsCampaignIdWorkspaceRouteChildren: CampaignsCampaignIdWorkspaceRou
       CampaignsCampaignIdWorkspaceDmScreenRoute,
     CampaignsCampaignIdWorkspaceEncountersRoute:
       CampaignsCampaignIdWorkspaceEncountersRoute,
-    CampaignsCampaignIdWorkspaceLocationsRoute:
-      CampaignsCampaignIdWorkspaceLocationsRoute,
     CampaignsCampaignIdWorkspaceNpcsRoute:
       CampaignsCampaignIdWorkspaceNpcsRoute,
     CampaignsCampaignIdWorkspacePlayerCharactersRoute:
@@ -674,7 +631,6 @@ const CampaignsCampaignIdWorkspaceRouteWithChildren =
 
 interface CampaignsCampaignIdRouteChildren {
   CampaignsCampaignIdEncounterLibraryRoute: typeof CampaignsCampaignIdEncounterLibraryRoute
-  CampaignsCampaignIdLocationDatabaseRoute: typeof CampaignsCampaignIdLocationDatabaseRoute
   CampaignsCampaignIdLoreSecretsDatabaseRoute: typeof CampaignsCampaignIdLoreSecretsDatabaseRoute
   CampaignsCampaignIdNpcDatabaseRoute: typeof CampaignsCampaignIdNpcDatabaseRoute
   CampaignsCampaignIdWorkspaceRoute: typeof CampaignsCampaignIdWorkspaceRouteWithChildren
@@ -684,8 +640,6 @@ interface CampaignsCampaignIdRouteChildren {
 const CampaignsCampaignIdRouteChildren: CampaignsCampaignIdRouteChildren = {
   CampaignsCampaignIdEncounterLibraryRoute:
     CampaignsCampaignIdEncounterLibraryRoute,
-  CampaignsCampaignIdLocationDatabaseRoute:
-    CampaignsCampaignIdLocationDatabaseRoute,
   CampaignsCampaignIdLoreSecretsDatabaseRoute:
     CampaignsCampaignIdLoreSecretsDatabaseRoute,
   CampaignsCampaignIdNpcDatabaseRoute: CampaignsCampaignIdNpcDatabaseRoute,

@@ -298,7 +298,6 @@ export function createSampleState(version: number): AppState {
     playerCharacters: [],
     timelineEvents: starterTimeline,
     lookupEntries: starterLookup,
-    locations: [],
     sessionLog: [],
   }
 }

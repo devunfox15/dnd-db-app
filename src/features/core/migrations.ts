@@ -44,7 +44,6 @@ export function createEmptyState(): AppState {
     playerCharacters: [],
     timelineEvents: [],
     lookupEntries: [],
-    locations: [],
     sessionLog: [],
   }
 }
@@ -128,8 +127,8 @@ export function migrateState(input: unknown): AppState {
       }))
     : []
 
-  migrated.locations = Array.isArray(migrated.locations) ? migrated.locations : []
   migrated.sessionLog = Array.isArray(migrated.sessionLog) ? migrated.sessionLog : []
+  delete (migrated as AppState & { locations?: unknown }).locations
 
   const validActiveCampaignId =
     typeof migrated.activeCampaignId === 'string' &&

@@ -7,7 +7,6 @@ import {
 import {
   CalendarDays,
   Users,
-  MapPin,
   UserRound,
   type LucideIcon,
 } from 'lucide-react'
@@ -35,12 +34,6 @@ const workspaceLinks: {
     to: '/campaigns/$campaignId/workspace/npcs',
     icon: Users,
     segment: 'npcs',
-  },
-  {
-    label: 'Locations',
-    to: '/campaigns/$campaignId/workspace/locations',
-    icon: MapPin,
-    segment: 'locations',
   },
 ]
 

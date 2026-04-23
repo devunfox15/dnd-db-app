@@ -190,22 +190,6 @@ export interface SessionLogEntry extends BaseEntity {
   timestamp: string
 }
 
-export interface LocationPin {
-  id: string
-  x: number
-  y: number
-  label: string
-  linkedNpcIds: EntityId[]
-  linkedNotes: EntityId[]
-}
-
-export interface Location extends BaseEntity {
-  name: string
-  description: string
-  imageUrl?: string
-  pins: LocationPin[]
-}
-
 export interface AbilityScores {
   str: number
   dex: number
@@ -415,7 +399,6 @@ export interface AppState {
   playerCharacters: PlayerCharacter[]
   timelineEvents: TimelineEvent[]
   lookupEntries: LookupEntry[]
-  locations: Location[]
   sessionLog: SessionLogEntry[]
 }
 
@@ -431,7 +414,6 @@ export type EntityByCollection = {
   playerCharacters: PlayerCharacter
   timelineEvents: TimelineEvent
   lookupEntries: LookupEntry
-  locations: Location
   sessionLog: SessionLogEntry
 }
 

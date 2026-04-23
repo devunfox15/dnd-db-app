@@ -24,19 +24,9 @@ function baseState() {
   return state
 }
 
-describe('new collections', () => {
+describe('sessionLog collection', () => {
   beforeEach(() => {
     resetRepositoryStateForTests(baseState())
-  })
-
-  it('creates a location via the generic repository', () => {
-    const created = appRepository.create('locations', {
-      campaignId,
-      name: 'Greenhollow',
-      description: 'Town',
-      pins: [],
-    })
-    expect(created.id).toMatch(/^locations-/)
   })
 
   it('creates a session log entry via the generic repository', () => {
@@ -51,58 +41,12 @@ describe('new collections', () => {
   })
 })
 
-describe('cleanupRelations for locations', () => {
+describe('deleteCampaignCascade for sessionLog', () => {
   beforeEach(() => {
     resetRepositoryStateForTests(baseState())
   })
 
-  it('removes deleted npc ids from location pins', () => {
-    const npc = appRepository.create('npcs', {
-      campaignId,
-      name: 'Mayor',
-      role: 'Leader',
-      faction: '',
-      notes: '',
-      usedInMapIds: [],
-      usedInTimelineEventIds: [],
-      tags: [],
-    })
-
-    const location = appRepository.create('locations', {
-      campaignId,
-      name: 'Greenhollow',
-      description: '',
-      pins: [
-        {
-          id: 'pin-1',
-          x: 0.1,
-          y: 0.2,
-          label: 'Mayor',
-          linkedNpcIds: [npc.id],
-          linkedNotes: [],
-        },
-      ],
-    })
-
-    appRepository.delete('npcs', npc.id)
-
-    const refreshed = appRepository.list('locations').find((item) => item.id === location.id)
-    expect(refreshed?.pins[0]?.linkedNpcIds).toEqual([])
-  })
-})
-
-describe('deleteCampaignCascade for new collections', () => {
-  beforeEach(() => {
-    resetRepositoryStateForTests(baseState())
-  })
-
-  it('removes locations and session log entries scoped to the deleted campaign', () => {
-    appRepository.create('locations', {
-      campaignId,
-      name: 'Greenhollow',
-      description: '',
-      pins: [],
-    })
+  it('removes session log entries scoped to the deleted campaign', () => {
     appRepository.create('sessionLog', {
       campaignId,
       kind: 'note',
@@ -113,7 +57,6 @@ describe('deleteCampaignCascade for new collections', () => {
 
     appRepository.deleteCampaignCascade(campaignId)
 
-    expect(appRepository.list('locations')).toEqual([])
     expect(appRepository.list('sessionLog')).toEqual([])
   })
 })

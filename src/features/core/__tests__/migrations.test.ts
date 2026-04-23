@@ -226,7 +226,7 @@ describe('migrateState', () => {
 })
 
 describe('migrateState with v6 → v7 additions', () => {
-  it('adds empty locations and sessionLog arrays to legacy state', () => {
+  it('adds an empty sessionLog array to legacy state', () => {
     const migrated = migrateState({
       version: 6,
       activeCampaignId: null,
@@ -242,7 +242,27 @@ describe('migrateState with v6 → v7 additions', () => {
     })
 
     expect(migrated.version).toBe(7)
-    expect(migrated.locations).toEqual([])
+    expect(migrated.sessionLog).toEqual([])
+  })
+
+  it('drops a legacy locations field if present in stored state', () => {
+    const migrated = migrateState({
+      version: 7,
+      activeCampaignId: null,
+      campaigns: [],
+      notes: [],
+      pins: [],
+      maps: [],
+      mapDocuments: [],
+      npcs: [],
+      playerCharacters: [],
+      timelineEvents: [],
+      lookupEntries: [],
+      locations: [{ id: 'stale' }],
+      sessionLog: [],
+    })
+
+    expect('locations' in migrated).toBe(false)
     expect(migrated.sessionLog).toEqual([])
   })
 })

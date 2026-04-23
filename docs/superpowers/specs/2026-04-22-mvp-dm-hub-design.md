@@ -49,18 +49,18 @@ Every screen in MVP must lead forward to the next natural step in this loop. MVP
 2. **Player Characters + D&D Beyond import** — import service already exists; MVP wires it into the PC flow, polishes edge cases, and adds refresh.
 3. **NPC characters** — CRUD, quick-attach to sessions.
 4. **Encounter library** — CRUD with a monster picker; encounters can be linked to a session.
-5. **Worldbuilding-lite (Locations)** — list of locations per campaign, each optionally has an image with pinned points of interest. The Figma hex builder is deferred.
-6. **Sessions + DM screen** — initiative tracker, HP/conditions, inline rules lookup, scratch notes, dice roller integration.
-7. **Dice roller** — keep the existing animated dice box.
-8. **5e rules lookup** — keep existing content; expose as a side panel in the DM screen.
-9. **Unified home/dashboard** — surfaces the active campaign and a "Start Session" CTA.
-10. **Session Log (unified notes)** — one note stream per campaign that replaces the separate notes/pins/secrets/scene-notes features for MVP.
+5. **Sessions + DM screen** — initiative tracker, HP/conditions, inline rules lookup, scratch notes, dice roller integration.
+6. **Dice roller** — keep the existing animated dice box.
+7. **5e rules lookup** — keep existing content; expose as a side panel in the DM screen.
+8. **Unified home/dashboard** — surfaces the active campaign and a "Start Session" CTA.
+9. **Session Log (unified notes)** — one note stream per campaign that replaces the separate notes/pins/secrets/scene-notes features for MVP. Places/locations are captured as entries here rather than a dedicated feature.
 
 ### PARKED for v2 (code kept, nav hidden)
 
 - `new-map-builder` (Figma-like hex/terrain painter).
 - `campaign-chat` (Ollama AI integration).
 - Separate `story-pins`, `timeline`, `scene-notes`, `secrets` features (collapsed into Session Log for MVP; existing storage kept read-compatible).
+- Dedicated Locations feature (list + image + pin editor). Places are captured as text notes inside Session Log for MVP; a dedicated Locations feature returns if/when the hex map builder comes back.
 - Pathfinder 2e / Call of Cthulhu 7e / Cyberpunk Red UI.
 - Multi-user, auth, sync, sharing, real-time.
 
@@ -77,8 +77,7 @@ Every screen in MVP must lead forward to the next natural step in this loop. MVP
     /player-characters/:id    PC detail
     /npcs                     NPC list
     /encounters               Encounter library
-    /locations                Locations (image + pins worldbuilding)
-    /log                      Session log (unified notes)
+    /log                      Session log (unified notes — absorbs place/location capture)
 /rpgs                         Kept; gated to 5e-only content
 ```
 
@@ -94,9 +93,7 @@ Starting point: `src/features/core/types.ts` already covers most of this.
 
 ### Add
 
-- `SessionLogEntry`: `{ id, campaignId, sessionId?, kind: 'note' | 'event' | 'secret', title, body, timestamp, tags? }` — replaces the MVP role of `DmNote` / `StoryPin` / `TimelineEvent`.
-- `Location`: `{ id, campaignId, name, description, imageUrl?, pins: LocationPin[] }`.
-- `LocationPin`: `{ id, x, y, label, linkedNpcIds: EntityId[], linkedNotes: EntityId[] }`. `x` and `y` are normalized (0–1) coordinates relative to the image.
+- `SessionLogEntry`: `{ id, campaignId, sessionId?, kind: 'note' | 'event' | 'secret', title, body, timestamp, tags? }` — replaces the MVP role of `DmNote` / `StoryPin` / `TimelineEvent`, and also absorbs places/locations as free-text entries.
 - Optional sync-scaffolding field on `BaseEntity`: `syncMeta?: { dirty: boolean; lastSyncedAt: string | null }` — unused in MVP but future-proofs against a migration storm.
 
 ### Realign
@@ -116,8 +113,7 @@ Each module below owns one responsibility, has a well-defined interface with the
 - `features/campaigns` — campaign CRUD + active-campaign selection.
 - `features/player-characters` — DDB import service + PC CRUD. Already cleanly split into `server/*` and state; preserve that split.
 - `features/session-workspace` — the Run experience and MVP's highest-complexity area. Keep the existing focused modules (`session-initiative-tracker`, `session-dm-party-panel`, `session-npc-roster`, `session-extras-panel`, `monster-picker`). **Refactor target:** `session-detail-page.tsx` must drop from 1,125 lines to under 400 by moving logic into the sub-modules; the page file orchestrates only.
-- `features/locations` (new, small) — list view + image-pin viewer/editor.
-- `features/session-log` (new, small) — unified note stream.
+- `features/session-log` (new, small) — unified note stream. Places/locations are captured as entries here for MVP.
 - `features/dice-roller`, `features/dnd-lookup`, `features/encounter-library` — unchanged logic; polish UI only.
 
 ## 9. Persistence and Future-Proofing
@@ -145,7 +141,7 @@ Current state: `src/features/player-characters/server/` already contains `import
 
 ## 11. Success Criteria
 
-1. The DM can create a campaign, import 3–4 PCs from D&D Beyond, add 5 NPCs, build 2 locations with pins, prep an encounter, and run a full mock session using only this app.
+1. The DM can create a campaign, import 3–4 PCs from D&D Beyond, add 5 NPCs, prep an encounter, capture a couple of scene/place notes in the Session Log, and run a full mock session using only this app.
 2. The Start Session → Initiative → End Session loop is smooth enough to prefer it over paper/Discord.
 3. The app loads the active campaign in under 1 second on localhost and survives a full page reload with state intact.
 4. `session-detail-page.tsx` is under 400 lines after refactor.
@@ -155,10 +151,10 @@ Current state: `src/features/player-characters/server/` already contains `import
 
 - Extend existing unit coverage:
   - `player-characters/__tests__/import-service.test.ts` — error paths and refresh.
-  - `core/__tests__/migrations.test.ts` — migrations that add `Location` and `SessionLogEntry`.
+  - `core/__tests__/migrations.test.ts` — migrations that add `SessionLogEntry`.
   - `core/__tests__/player-characters-repository.test.ts` — unchanged.
-- Add repository tests for the new `Location` and `SessionLogEntry` collections.
-- Add one integration-level smoke test that walks the core loop end to end (create campaign → add PC → add NPC → create location → create encounter → start session → tick initiative → end session).
+- Add repository tests for the new `SessionLogEntry` collection.
+- Add one integration-level smoke test that walks the core loop end to end (create campaign → add PC → add NPC → create encounter → start session → tick initiative → log a scene note → end session).
 - No end-to-end (browser) framework is introduced for MVP.
 
 ## 13. Out-of-Scope Features (Explicit List)
@@ -170,6 +166,7 @@ Current state: `src/features/player-characters/server/` already contains `import
 | `story-pins` (standalone) | Collapsed into Session Log for MVP |
 | `dm-notepad` (standalone) | Collapsed into Session Log for MVP |
 | `scene-notes` / `secrets` (standalone) | Collapsed into Session Log for MVP |
+| Dedicated Locations feature (image + pins) | Parked; places captured as Session Log notes |
 | Pathfinder 2e / CoC 7e / Cyberpunk Red UI | Enum retained; UI gated to 5e-only |
 | Multiplayer / auth / sync | Post-MVP; data shapes future-proofed |
 | Mobile-specific UX | Desktop-first; must not break on tablet |

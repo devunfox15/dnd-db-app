@@ -31,21 +31,22 @@ describe('exportState / importState', () => {
   })
 
   it('roundtrips state through export and import', () => {
-    appRepository.create('locations', {
+    appRepository.create('sessionLog', {
       campaignId,
-      name: 'Greenhollow',
-      description: '',
-      pins: [],
+      kind: 'note',
+      title: 'Greenhollow',
+      body: 'Sleepy frontier town',
+      timestamp: new Date().toISOString(),
     })
     const exported = exportState()
     expect(typeof exported).toBe('string')
 
     resetRepositoryStateForTests(createEmptyState())
-    expect(appRepository.list('locations')).toEqual([])
+    expect(appRepository.list('sessionLog')).toEqual([])
 
     const result = importState(exported)
     expect(result.ok).toBe(true)
-    expect(appRepository.list('locations').map((l) => l.name)).toEqual(['Greenhollow'])
+    expect(appRepository.list('sessionLog').map((entry) => entry.title)).toEqual(['Greenhollow'])
   })
 
   it('rejects malformed input', () => {

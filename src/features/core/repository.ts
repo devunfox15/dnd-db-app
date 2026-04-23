@@ -149,14 +149,6 @@ function cleanupRelations(next: AppState): AppState {
 
   next.pins = next.pins.filter((pin) => routeSourceStillExists(pin.sourceType, pin.sourceId))
 
-  next.locations = next.locations.map((location) => ({
-    ...location,
-    pins: location.pins.map((pin) => ({
-      ...pin,
-      linkedNpcIds: pin.linkedNpcIds.filter((id) => npcIds.has(id)),
-    })),
-  }))
-
   const currentEvents = next.timelineEvents.filter((event) => event.isCurrent)
   if (currentEvents.length > 1) {
     const [first, ...rest] = currentEvents
@@ -251,7 +243,6 @@ export const appRepository: Repository = {
     )
     nextState.timelineEvents = nextState.timelineEvents.filter((event) => event.campaignId !== campaignId)
     nextState.lookupEntries = nextState.lookupEntries.filter((entry) => entry.campaignId !== campaignId)
-    nextState.locations = nextState.locations.filter((loc) => loc.campaignId !== campaignId)
     nextState.sessionLog = nextState.sessionLog.filter((entry) => entry.campaignId !== campaignId)
 
     if (nextState.activeCampaignId === campaignId) {
