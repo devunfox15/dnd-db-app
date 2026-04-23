@@ -180,6 +180,16 @@ export interface LookupEntry extends BaseEntity {
   details: string
 }
 
+export type SessionLogKind = 'note' | 'event' | 'secret'
+
+export interface SessionLogEntry extends BaseEntity {
+  sessionId?: EntityId
+  kind: SessionLogKind
+  title: string
+  body: string
+  timestamp: string
+}
+
 export interface AbilityScores {
   str: number
   dex: number
