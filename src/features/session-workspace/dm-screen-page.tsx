@@ -4,7 +4,10 @@ import {
   ChevronDown,
   X,
   GripVertical,
+  Monitor,
   Plus,
+  Swords,
+  Users,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -17,7 +20,12 @@ import {
   addItemToSessionBoard,
   useSessionBoard,
 } from '@/features/session-workspace/session-board-store'
+import SessionDmPartyPanel from '@/features/session-workspace/session-dm-party-panel'
+import SessionExtrasPanel from '@/features/session-workspace/session-extras-panel'
+import SessionInitiativeTracker from '@/features/session-workspace/session-initiative-tracker'
 import { useCampaignStorageState } from '@/features/session-workspace/storage'
+
+type DmTab = 'board' | 'combat' | 'party' | 'extras'
 
 interface SceneWorkspaceState {
   activeSceneId: string | null
@@ -64,7 +72,14 @@ function findItemColumn(
   return null
 }
 
-export default function DmScreenPage({ campaignId }: { campaignId: string }) {
+export default function DmScreenPage({
+  campaignId,
+  sessionId,
+}: {
+  campaignId: string
+  sessionId?: string
+}) {
+  const [dmTab, setDmTab] = useState<DmTab>('board')
   const state = useAppState()
   const { state: boardState, setState } = useSessionBoard(campaignId)
   const [dragItemId, setDragItemId] = useState<string | null>(null)
@@ -228,8 +243,70 @@ export default function DmScreenPage({ campaignId }: { campaignId: string }) {
     }))
   }
 
+  const dmTabs: { id: DmTab; label: string; icon: React.ElementType }[] = [
+    { id: 'board', label: 'Board', icon: Monitor },
+    { id: 'combat', label: 'Combat', icon: Swords },
+    { id: 'party', label: 'Party', icon: Users },
+    { id: 'extras', label: 'Extras', icon: Plus },
+  ]
+
   return (
     <div className="space-y-4">
+      {/* Sub-tab bar */}
+      <div className="flex gap-1 rounded-lg border bg-muted/40 p-1 w-fit">
+        {dmTabs.map((tab) => {
+          const Icon = tab.icon
+          const active = dmTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setDmTab(tab.id)}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="size-3.5" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Combat tab */}
+      {dmTab === 'combat' && sessionId && (
+        <SessionInitiativeTracker campaignId={campaignId} sessionId={sessionId} />
+      )}
+      {dmTab === 'combat' && !sessionId && (
+        <p className="text-sm text-muted-foreground">
+          Combat tracker requires a session context.
+        </p>
+      )}
+
+      {/* Party tab */}
+      {dmTab === 'party' && sessionId && (
+        <SessionDmPartyPanel campaignId={campaignId} sessionId={sessionId} />
+      )}
+      {dmTab === 'party' && !sessionId && (
+        <p className="text-sm text-muted-foreground">
+          Party panel requires a session context.
+        </p>
+      )}
+
+      {/* Extras tab */}
+      {dmTab === 'extras' && sessionId && (
+        <SessionExtrasPanel campaignId={campaignId} sessionId={sessionId} />
+      )}
+      {dmTab === 'extras' && !sessionId && (
+        <p className="text-sm text-muted-foreground">
+          Session extras requires a session context.
+        </p>
+      )}
+
+      {/* Board tab */}
+      {dmTab === 'board' && (
+      <>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -418,6 +495,8 @@ export default function DmScreenPage({ campaignId }: { campaignId: string }) {
           )
         })}
       </div>
+      </>
+      )}
     </div>
   )
 }

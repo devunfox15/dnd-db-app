@@ -10,6 +10,7 @@ import {
 import { loadLayer, saveLayer } from '../storage'
 import type { DrawToolId, GridSize, GridType, Layer, ToolOptions } from '../types'
 import { TERRAIN_TEXTURE_MAP } from '../types'
+import { getTerrainPattern, initTerrainPatterns } from './terrain-patterns'
 
 export interface MapCanvasHandle {
   undo: () => void
@@ -48,21 +49,38 @@ function paintTerrainSegment(
   curr: { x: number; y: number },
   brushSize: number,
   color: string,
+  brushShape: 'circle' | 'square' = 'circle',
 ) {
-  const base = TERRAIN_TEXTURE_MAP[color]?.base ?? color
-  const feather = Math.max(2, Math.round(brushSize * 0.22))
+  const fill: string | CanvasPattern =
+    getTerrainPattern(color) ?? TERRAIN_TEXTURE_MAP[color]?.base ?? color
   ctx.globalCompositeOperation = 'source-over'
   ctx.globalAlpha = 1
-  ctx.filter      = `blur(${feather}px)`
-  ctx.strokeStyle = base
-  ctx.lineWidth   = brushSize * 2
-  ctx.lineCap     = 'round'
-  ctx.lineJoin    = 'round'
-  ctx.beginPath()
-  ctx.moveTo(prev?.x ?? curr.x, prev?.y ?? curr.y)
-  ctx.lineTo(curr.x, curr.y)
-  ctx.stroke()
   ctx.filter = 'none'
+
+  if (brushShape === 'square') {
+    ctx.fillStyle = fill
+    // Stamp axis-aligned squares along the segment
+    const p = prev ?? curr
+    const dx = curr.x - p.x
+    const dy = curr.y - p.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const steps = Math.max(1, Math.ceil(dist / (brushSize * 0.5)))
+    for (let i = 0; i <= steps; i++) {
+      const t = steps === 0 ? 0 : i / steps
+      const x = p.x + dx * t - brushSize
+      const y = p.y + dy * t - brushSize
+      ctx.fillRect(x, y, brushSize * 2, brushSize * 2)
+    }
+  } else {
+    ctx.strokeStyle = fill
+    ctx.lineWidth   = brushSize * 2
+    ctx.lineCap     = 'round'
+    ctx.lineJoin    = 'round'
+    ctx.beginPath()
+    ctx.moveTo(prev?.x ?? curr.x, prev?.y ?? curr.y)
+    ctx.lineTo(curr.x, curr.y)
+    ctx.stroke()
+  }
 }
 
 const CURSOR_MAP: Record<DrawToolId, string> = {
@@ -149,6 +167,14 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     })
   }, [initialized]) // intentionally runs once after init
 
+  // Generate terrain texture patterns once
+  useEffect(() => {
+    if (!initialized) return
+    const scratch = scratchCanvasRef.current
+    const sCtx = scratch?.getContext('2d')
+    if (sCtx) initTerrainPatterns(sCtx)
+  }, [initialized])
+
   // Reload newly-added layers that don't have canvas data yet
   useEffect(() => {
     if (!initialized) return
@@ -166,8 +192,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
     if (!showGrid) return
 
-    ctx.strokeStyle = 'rgba(139,90,43,0.35)'
-    ctx.lineWidth = 0.75
+    ctx.strokeStyle = 'rgba(30,30,30,0.45)'
+    ctx.lineWidth = 1
 
     if (gridType === 'square') {
       const cell = CANVAS_SIZE / gridSize
@@ -397,7 +423,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
       const scratch = scratchCanvasRef.current
       const sCtx = scratch?.getContext('2d')
       if (!sCtx) return
-      paintTerrainSegment(sCtx, prevPaintPointRef.current, pt, opts.paintbrush.brushSize, opts.paintbrush.color)
+      paintTerrainSegment(sCtx, prevPaintPointRef.current, pt, opts.paintbrush.brushSize, opts.paintbrush.color, opts.paintbrush.brushShape)
       prevPaintPointRef.current = pt
     } else if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out'
@@ -427,11 +453,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
         const tCtx = terrainCanvas?.getContext('2d')
         const scratch = scratchCanvasRef.current
         if (tCtx && scratch) {
-          tCtx.globalCompositeOperation = 'destination-out'
-          tCtx.drawImage(scratch, 0, 0)
           tCtx.globalCompositeOperation = 'source-over'
+          tCtx.globalAlpha = 1
           tCtx.drawImage(scratch, 0, 0)
-          tCtx.globalCompositeOperation = 'source-over'
           scratch.getContext('2d')?.clearRect(0, 0, scratch.width, scratch.height)
           prevPaintPointRef.current = null
         }
@@ -467,6 +491,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
   // Layers rendered bottom→top: reverse array so index-0 (top layer) renders last in DOM
   const layersBottomToTop = [...layers].reverse()
+  // Grid sits above terrain+paths but below icons+labels
+  const BELOW_GRID_IDS = new Set(['terrain', 'paths'])
+  const layersBelowGrid = layersBottomToTop.filter(l => BELOW_GRID_IDS.has(l.id))
+  const layersAboveGrid = layersBottomToTop.filter(l => !BELOW_GRID_IDS.has(l.id))
 
   return (
     <div
@@ -497,8 +525,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
           pointerEvents: 'none',
         }}
       >
-        {/* Layer canvases — bottom layer first in DOM, top layer last */}
-        {layersBottomToTop.map(layer => (
+        {/* Layers below grid: terrain, paths */}
+        {layersBelowGrid.map(layer => (
           <canvas
             key={layer.id}
             ref={el => { layerCanvasRefs.current[layer.id] = el }}
@@ -521,13 +549,29 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
           style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
         />
 
-        {/* Grid overlay — always on top, non-interactive */}
+        {/* Grid overlay — above terrain+paths, below icons+labels */}
         <canvas
           ref={gridCanvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
           style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
         />
+
+        {/* Layers above grid: icons, labels */}
+        {layersAboveGrid.map(layer => (
+          <canvas
+            key={layer.id}
+            ref={el => { layerCanvasRefs.current[layer.id] = el }}
+            width={CANVAS_SIZE}
+            height={CANVAS_SIZE}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: layer.visible ? 'block' : 'none',
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
       </div>
 
       {/* Floating text input — positioned in workspace coords */}
@@ -566,6 +610,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
         const isEraser = activeTool === 'eraser'
         const radius = isEraser ? toolOptions.eraser.size : toolOptions.paintbrush.brushSize
         const fill   = isEraser ? 'rgba(255,255,255,0.06)' : `${toolOptions.paintbrush.color}40`
+        const isSquare = !isEraser && toolOptions.paintbrush.brushShape === 'square'
         return (
           <div
             style={{
@@ -575,7 +620,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               width:  radius * 2 * zoomDisplay,
               height: radius * 2 * zoomDisplay,
               transform: 'translate(-50%, -50%)',
-              borderRadius: '50%',
+              borderRadius: isSquare ? '0' : '50%',
               border: '1.5px solid rgba(255,255,255,0.85)',
               boxShadow: '0 0 0 1px rgba(0,0,0,0.5)',
               background: fill,

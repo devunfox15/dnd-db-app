@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock, Plus, Trash2 } from 'lucide-react'
+import { Circle, Eye, EyeOff, Lock, Plus, Square, Trash2 } from 'lucide-react'
 
 import type { DrawToolId, GridSize, GridType, Layer, ToolOptions } from '../types'
 import {
@@ -359,6 +359,38 @@ export function ToolOptionsPanel({
                   </div>
                 </div>
               ))}
+
+              <div>
+                <SectionLabel>Brush Shape</SectionLabel>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {(['circle', 'square'] as const).map(shape => {
+                    const selected = toolOptions.paintbrush.brushShape === shape
+                    const Icon = shape === 'circle' ? Circle : Square
+                    return (
+                      <button
+                        key={shape}
+                        title={shape.charAt(0).toUpperCase() + shape.slice(1)}
+                        onClick={() => onToolOptionsChange({ paintbrush: { ...toolOptions.paintbrush, brushShape: shape } })}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 6,
+                          border: selected ? '2px solid #0096ff' : '1px solid rgba(255,255,255,0.15)',
+                          background: selected ? 'rgba(0,150,255,0.15)' : 'rgba(255,255,255,0.06)',
+                          color: selected ? '#0096ff' : 'rgba(255,255,255,0.7)',
+                          cursor: 'pointer',
+                          outline: 'none',
+                        }}
+                      >
+                        <Icon size={16} />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
               <div>
                 <SectionLabel>Brush Size</SectionLabel>
