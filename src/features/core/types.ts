@@ -10,12 +10,18 @@ export type CampaignRpgSystem =
 export type PinStatus = 'active' | 'resolved' | 'backlog'
 export type TimelineStatus = 'planned' | 'active' | 'completed'
 
+export interface SyncMeta {
+  dirty: boolean
+  lastSyncedAt: string | null
+}
+
 export interface BaseEntity {
   id: EntityId
   createdAt: string
   updatedAt: string
   campaignId: EntityId
   tags?: string[]
+  syncMeta?: SyncMeta
 }
 
 export interface Campaign extends BaseEntity {
