@@ -30,6 +30,7 @@ import { Route as CampaignsCampaignIdWorkspaceSecretsRouteImport } from './route
 import { Route as CampaignsCampaignIdWorkspaceSceneNotesRouteImport } from './routes/campaigns.$campaignId.workspace.scene-notes'
 import { Route as CampaignsCampaignIdWorkspacePlayerCharactersRouteImport } from './routes/campaigns.$campaignId.workspace.player-characters'
 import { Route as CampaignsCampaignIdWorkspaceNpcsRouteImport } from './routes/campaigns.$campaignId.workspace.npcs'
+import { Route as CampaignsCampaignIdWorkspaceLogRouteImport } from './routes/campaigns.$campaignId.workspace.log'
 import { Route as CampaignsCampaignIdWorkspaceEncountersRouteImport } from './routes/campaigns.$campaignId.workspace.encounters'
 import { Route as CampaignsCampaignIdWorkspaceDmScreenRouteImport } from './routes/campaigns.$campaignId.workspace.dm-screen'
 import { Route as CampaignsCampaignIdWorkspaceSessionsIndexRouteImport } from './routes/campaigns.$campaignId.workspace.sessions.index'
@@ -153,6 +154,12 @@ const CampaignsCampaignIdWorkspaceNpcsRoute =
     path: '/npcs',
     getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
   } as any)
+const CampaignsCampaignIdWorkspaceLogRoute =
+  CampaignsCampaignIdWorkspaceLogRouteImport.update({
+    id: '/log',
+    path: '/log',
+    getParentRoute: () => CampaignsCampaignIdWorkspaceRoute,
+  } as any)
 const CampaignsCampaignIdWorkspaceEncountersRoute =
   CampaignsCampaignIdWorkspaceEncountersRouteImport.update({
     id: '/encounters',
@@ -210,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
+  '/campaigns/$campaignId/workspace/log': typeof CampaignsCampaignIdWorkspaceLogRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/player-characters': typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -234,6 +242,7 @@ export interface FileRoutesByTo {
   '/campaigns/$campaignId': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
+  '/campaigns/$campaignId/workspace/log': typeof CampaignsCampaignIdWorkspaceLogRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
   '/campaigns/$campaignId/workspace/secrets': typeof CampaignsCampaignIdWorkspaceSecretsRoute
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   '/campaigns/$campaignId/': typeof CampaignsCampaignIdIndexRoute
   '/campaigns/$campaignId/workspace/dm-screen': typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   '/campaigns/$campaignId/workspace/encounters': typeof CampaignsCampaignIdWorkspaceEncountersRoute
+  '/campaigns/$campaignId/workspace/log': typeof CampaignsCampaignIdWorkspaceLogRoute
   '/campaigns/$campaignId/workspace/npcs': typeof CampaignsCampaignIdWorkspaceNpcsRoute
   '/campaigns/$campaignId/workspace/player-characters': typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   '/campaigns/$campaignId/workspace/scene-notes': typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId/'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
+    | '/campaigns/$campaignId/workspace/log'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/player-characters'
     | '/campaigns/$campaignId/workspace/scene-notes'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
+    | '/campaigns/$campaignId/workspace/log'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/scene-notes'
     | '/campaigns/$campaignId/workspace/secrets'
@@ -344,6 +356,7 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId/'
     | '/campaigns/$campaignId/workspace/dm-screen'
     | '/campaigns/$campaignId/workspace/encounters'
+    | '/campaigns/$campaignId/workspace/log'
     | '/campaigns/$campaignId/workspace/npcs'
     | '/campaigns/$campaignId/workspace/player-characters'
     | '/campaigns/$campaignId/workspace/scene-notes'
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsCampaignIdWorkspaceNpcsRouteImport
       parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
     }
+    '/campaigns/$campaignId/workspace/log': {
+      id: '/campaigns/$campaignId/workspace/log'
+      path: '/log'
+      fullPath: '/campaigns/$campaignId/workspace/log'
+      preLoaderRoute: typeof CampaignsCampaignIdWorkspaceLogRouteImport
+      parentRoute: typeof CampaignsCampaignIdWorkspaceRoute
+    }
     '/campaigns/$campaignId/workspace/encounters': {
       id: '/campaigns/$campaignId/workspace/encounters'
       path: '/encounters'
@@ -596,6 +616,7 @@ const CampaignsCampaignIdWorkspaceSessionsRouteWithChildren =
 interface CampaignsCampaignIdWorkspaceRouteChildren {
   CampaignsCampaignIdWorkspaceDmScreenRoute: typeof CampaignsCampaignIdWorkspaceDmScreenRoute
   CampaignsCampaignIdWorkspaceEncountersRoute: typeof CampaignsCampaignIdWorkspaceEncountersRoute
+  CampaignsCampaignIdWorkspaceLogRoute: typeof CampaignsCampaignIdWorkspaceLogRoute
   CampaignsCampaignIdWorkspaceNpcsRoute: typeof CampaignsCampaignIdWorkspaceNpcsRoute
   CampaignsCampaignIdWorkspacePlayerCharactersRoute: typeof CampaignsCampaignIdWorkspacePlayerCharactersRouteWithChildren
   CampaignsCampaignIdWorkspaceSceneNotesRoute: typeof CampaignsCampaignIdWorkspaceSceneNotesRoute
@@ -610,6 +631,7 @@ const CampaignsCampaignIdWorkspaceRouteChildren: CampaignsCampaignIdWorkspaceRou
       CampaignsCampaignIdWorkspaceDmScreenRoute,
     CampaignsCampaignIdWorkspaceEncountersRoute:
       CampaignsCampaignIdWorkspaceEncountersRoute,
+    CampaignsCampaignIdWorkspaceLogRoute: CampaignsCampaignIdWorkspaceLogRoute,
     CampaignsCampaignIdWorkspaceNpcsRoute:
       CampaignsCampaignIdWorkspaceNpcsRoute,
     CampaignsCampaignIdWorkspacePlayerCharactersRoute:
