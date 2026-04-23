@@ -50,3 +50,43 @@ describe('new collections', () => {
     expect(created.kind).toBe('note')
   })
 })
+
+describe('cleanupRelations for locations', () => {
+  beforeEach(() => {
+    resetRepositoryStateForTests(baseState())
+  })
+
+  it('removes deleted npc ids from location pins', () => {
+    const npc = appRepository.create('npcs', {
+      campaignId,
+      name: 'Mayor',
+      role: 'Leader',
+      faction: '',
+      notes: '',
+      usedInMapIds: [],
+      usedInTimelineEventIds: [],
+      tags: [],
+    })
+
+    const location = appRepository.create('locations', {
+      campaignId,
+      name: 'Greenhollow',
+      description: '',
+      pins: [
+        {
+          id: 'pin-1',
+          x: 0.1,
+          y: 0.2,
+          label: 'Mayor',
+          linkedNpcIds: [npc.id],
+          linkedNotes: [],
+        },
+      ],
+    })
+
+    appRepository.delete('npcs', npc.id)
+
+    const refreshed = appRepository.list('locations').find((item) => item.id === location.id)
+    expect(refreshed?.pins[0]?.linkedNpcIds).toEqual([])
+  })
+})
