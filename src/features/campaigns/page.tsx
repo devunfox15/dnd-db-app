@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/empty'
 import { Input } from '@/components/ui/input'
 import { getCampaignDashboardItems } from '@/features/campaigns/dashboard-logic'
-import { rpgLabel, rpgOptions } from '@/features/campaigns/rpg-options'
+import { mvpRpgOptions, rpgLabel } from '@/features/campaigns/rpg-options'
 import { appRepository, useAppState } from '@/features/core/store'
 import type { CampaignRpgSystem, Campaign } from '@/features/core/types'
 
@@ -241,7 +241,7 @@ export default function FeaturePage() {
                 }
                 className="h-9 w-full rounded-md border bg-background px-3 text-sm"
               >
-                {rpgOptions.map((option) => (
+                {mvpRpgOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

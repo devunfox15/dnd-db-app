@@ -7,6 +7,8 @@ export const rpgOptions: Array<{ value: CampaignRpgSystem; label: string }> = [
   { value: 'cyberpunk-red', label: 'Cyberpunk RED' },
 ]
 
+export const mvpRpgOptions = rpgOptions.filter((option) => option.value === 'dnd-5e')
+
 export function rpgLabel(value: CampaignRpgSystem): string {
   return rpgOptions.find((option) => option.value === value)?.label ?? value
 }
