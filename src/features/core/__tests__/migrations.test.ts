@@ -224,3 +224,25 @@ describe('migrateState', () => {
     expect(migrated.mapDocuments[0]?.features[0]?.linkedMapDocumentId).toBeNull()
   })
 })
+
+describe('migrateState with v6 → v7 additions', () => {
+  it('adds empty locations and sessionLog arrays to legacy state', () => {
+    const migrated = migrateState({
+      version: 6,
+      activeCampaignId: null,
+      campaigns: [],
+      notes: [],
+      pins: [],
+      maps: [],
+      mapDocuments: [],
+      npcs: [],
+      playerCharacters: [],
+      timelineEvents: [],
+      lookupEntries: [],
+    })
+
+    expect(migrated.version).toBe(7)
+    expect(migrated.locations).toEqual([])
+    expect(migrated.sessionLog).toEqual([])
+  })
+})

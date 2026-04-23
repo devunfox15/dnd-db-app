@@ -2,7 +2,7 @@ import { createEmptyPlayerCharacterSheet } from './player-character-sheet'
 import { createSampleState } from './sample-data'
 import type { AppState, MapFeature, PlayerCharacterImportSource } from './types'
 
-export const currentVersion = 6
+export const currentVersion = 7
 
 function normalizeMapKind(kind: unknown): 'world' | 'session' {
   return kind === 'session' ? 'session' : 'world'
@@ -127,6 +127,9 @@ export function migrateState(input: unknown): AppState {
           : [],
       }))
     : []
+
+  migrated.locations = Array.isArray(migrated.locations) ? migrated.locations : []
+  migrated.sessionLog = Array.isArray(migrated.sessionLog) ? migrated.sessionLog : []
 
   const validActiveCampaignId =
     typeof migrated.activeCampaignId === 'string' &&
