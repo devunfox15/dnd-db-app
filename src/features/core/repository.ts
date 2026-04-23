@@ -251,6 +251,8 @@ export const appRepository: Repository = {
     )
     nextState.timelineEvents = nextState.timelineEvents.filter((event) => event.campaignId !== campaignId)
     nextState.lookupEntries = nextState.lookupEntries.filter((entry) => entry.campaignId !== campaignId)
+    nextState.locations = nextState.locations.filter((loc) => loc.campaignId !== campaignId)
+    nextState.sessionLog = nextState.sessionLog.filter((entry) => entry.campaignId !== campaignId)
 
     if (nextState.activeCampaignId === campaignId) {
       nextState.activeCampaignId = getMostRecentlyUpdatedCampaignId(nextState)

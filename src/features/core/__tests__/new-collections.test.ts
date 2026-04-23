@@ -90,3 +90,30 @@ describe('cleanupRelations for locations', () => {
     expect(refreshed?.pins[0]?.linkedNpcIds).toEqual([])
   })
 })
+
+describe('deleteCampaignCascade for new collections', () => {
+  beforeEach(() => {
+    resetRepositoryStateForTests(baseState())
+  })
+
+  it('removes locations and session log entries scoped to the deleted campaign', () => {
+    appRepository.create('locations', {
+      campaignId,
+      name: 'Greenhollow',
+      description: '',
+      pins: [],
+    })
+    appRepository.create('sessionLog', {
+      campaignId,
+      kind: 'note',
+      title: 'Opening',
+      body: '',
+      timestamp: new Date().toISOString(),
+    })
+
+    appRepository.deleteCampaignCascade(campaignId)
+
+    expect(appRepository.list('locations')).toEqual([])
+    expect(appRepository.list('sessionLog')).toEqual([])
+  })
+})
