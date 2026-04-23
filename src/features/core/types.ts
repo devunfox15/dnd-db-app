@@ -415,6 +415,8 @@ export interface AppState {
   playerCharacters: PlayerCharacter[]
   timelineEvents: TimelineEvent[]
   lookupEntries: LookupEntry[]
+  locations: Location[]
+  sessionLog: SessionLogEntry[]
 }
 
 export type CollectionKey = keyof EntityByCollection
@@ -429,6 +431,8 @@ export type EntityByCollection = {
   playerCharacters: PlayerCharacter
   timelineEvents: TimelineEvent
   lookupEntries: LookupEntry
+  locations: Location
+  sessionLog: SessionLogEntry
 }
 
 export interface ListFilters<T extends BaseEntity> {

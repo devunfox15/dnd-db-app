@@ -44,6 +44,8 @@ export function createEmptyState(): AppState {
     playerCharacters: [],
     timelineEvents: [],
     lookupEntries: [],
+    locations: [],
+    sessionLog: [],
   }
 }
 
