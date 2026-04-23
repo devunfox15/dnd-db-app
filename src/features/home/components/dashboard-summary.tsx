@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { rpgLabel } from '@/features/campaigns/rpg-options'
 import { useAppState } from '@/features/core/store'
+import { DataPortabilityCard } from '@/features/home/components/data-portability-card'
 
 export function DashboardSummary() {
   const state = useAppState()
@@ -108,6 +109,8 @@ export function DashboardSummary() {
           </CardContent>
         </Card>
       </div>
+
+      <DataPortabilityCard />
     </div>
   )
 }
