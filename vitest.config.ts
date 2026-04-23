@@ -11,7 +11,11 @@ export default defineConfig(({ mode }) => {
       viteReact(),
     ],
     test: {
-      environmentMatchGlobs: [['**/session-log/**/*.{test,spec}.{ts,tsx}', 'jsdom']],
+      environmentMatchGlobs: [
+        ['**/session-log/**/*.{test,spec}.{ts,tsx}', 'jsdom'],
+        ['**/session-workspace/__tests__/session-detail-page.test.{ts,tsx}', 'jsdom'],
+      ],
+      setupFiles: ['./src/test-setup/jsdom-polyfills.ts'],
       env,
     },
     resolve: {
