@@ -1,8 +1,13 @@
 import { useMemo, useState } from 'react'
-import { NotebookPenIcon } from 'lucide-react'
+import { NotebookPenIcon, PlusIcon } from 'lucide-react'
 
-import { useAppState } from '@/features/core/store'
+import { Button } from '@/components/ui/button'
+import { appRepository, useAppState } from '@/features/core/store'
 import { EntryCard } from '@/features/session-log/entry-card'
+import {
+  EntryForm,
+  type EntryDraft,
+} from '@/features/session-log/entry-form'
 import {
   KindFilter,
   type KindFilterValue,
@@ -12,9 +17,13 @@ interface SessionLogListPageProps {
   campaignId: string
 }
 
+const emptyDraft: EntryDraft = { kind: 'note', title: '', body: '' }
+
 export default function SessionLogListPage({ campaignId }: SessionLogListPageProps) {
   const state = useAppState()
   const [filter, setFilter] = useState<KindFilterValue>('all')
+  const [creating, setCreating] = useState(false)
+  const [draft, setDraft] = useState<EntryDraft>(emptyDraft)
 
   const entries = useMemo(() => {
     const scoped = state.sessionLog.filter((entry) => entry.campaignId === campaignId)
@@ -22,9 +31,46 @@ export default function SessionLogListPage({ campaignId }: SessionLogListPagePro
     return [...filtered].sort((a, b) => b.timestamp.localeCompare(a.timestamp))
   }, [campaignId, filter, state.sessionLog])
 
+  function submitNew() {
+    const trimmedTitle = draft.title.trim()
+    const trimmedBody = draft.body.trim()
+    if (!trimmedTitle && !trimmedBody) return
+
+    appRepository.create('sessionLog', {
+      campaignId,
+      kind: draft.kind,
+      title: trimmedTitle,
+      body: trimmedBody,
+      timestamp: new Date().toISOString(),
+    })
+    setDraft(emptyDraft)
+    setCreating(false)
+  }
+
   return (
     <div className="space-y-4">
-      <KindFilter value={filter} onChange={setFilter} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <KindFilter value={filter} onChange={setFilter} />
+        {!creating ? (
+          <Button size="sm" onClick={() => setCreating(true)} className="gap-2">
+            <PlusIcon className="size-4" />
+            New Entry
+          </Button>
+        ) : null}
+      </div>
+
+      {creating ? (
+        <EntryForm
+          draft={draft}
+          onChange={setDraft}
+          onSubmit={submitNew}
+          onCancel={() => {
+            setCreating(false)
+            setDraft(emptyDraft)
+          }}
+          submitLabel="Add"
+        />
+      ) : null}
 
       {entries.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">

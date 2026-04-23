@@ -74,4 +74,26 @@ describe('SessionLogListPage', () => {
       cleanup()
     }
   })
+
+  it('creates an entry via the inline form', () => {
+    try {
+      render(createElement(SessionLogListPage, { campaignId }))
+
+      fireEvent.click(screen.getByRole('button', { name: /new entry/i }))
+
+      const titleInput = screen.getByPlaceholderText(/title/i) as HTMLInputElement
+      fireEvent.change(titleInput, { target: { value: 'Session Recap' } })
+
+      fireEvent.click(screen.getByRole('button', { name: /^add$/i }))
+
+      const created = appRepository
+        .list('sessionLog')
+        .find((entry) => entry.title === 'Session Recap')
+      expect(created).toBeDefined()
+      expect(created?.campaignId).toBe(campaignId)
+      expect(created?.kind).toBe('note')
+    } finally {
+      cleanup()
+    }
+  })
 })
