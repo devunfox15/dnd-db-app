@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router'
 import {
   CalendarDays,
+  NotebookPen,
   Users,
   UserRound,
   type LucideIcon,
@@ -34,6 +35,12 @@ const workspaceLinks: {
     to: '/campaigns/$campaignId/workspace/npcs',
     icon: Users,
     segment: 'npcs',
+  },
+  {
+    label: 'Session Log',
+    to: '/campaigns/$campaignId/workspace/log',
+    icon: NotebookPen,
+    segment: 'log',
   },
 ]
 
