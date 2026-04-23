@@ -12,6 +12,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 const campaignId = 'campaign-1'
+const sessionId = 'session-1'
 
 function seedBase() {
   const state = createEmptyState()
@@ -39,7 +40,7 @@ describe('SessionLogListPage', () => {
 
   it('renders an empty state when no entries exist', () => {
     try {
-      render(createElement(SessionLogListPage, { campaignId }))
+      render(createElement(SessionLogListPage, { campaignId, sessionId }))
       expect(screen.getByText(/no log entries/i)).toBeDefined()
     } finally {
       cleanup()
@@ -49,6 +50,7 @@ describe('SessionLogListPage', () => {
   it('renders all entries by default and filters by kind', () => {
     appRepository.create('sessionLog', {
       campaignId,
+      sessionId,
       kind: 'note',
       title: 'Greenhollow',
       body: 'Frontier town',
@@ -56,6 +58,7 @@ describe('SessionLogListPage', () => {
     })
     appRepository.create('sessionLog', {
       campaignId,
+      sessionId,
       kind: 'secret',
       title: 'Buried gold',
       body: 'Under the chapel',
@@ -63,7 +66,7 @@ describe('SessionLogListPage', () => {
     })
 
     try {
-      render(createElement(SessionLogListPage, { campaignId }))
+      render(createElement(SessionLogListPage, { campaignId, sessionId }))
       expect(screen.getByText('Greenhollow')).toBeDefined()
       expect(screen.getByText('Buried gold')).toBeDefined()
 
@@ -77,7 +80,7 @@ describe('SessionLogListPage', () => {
 
   it('creates an entry via the inline form', () => {
     try {
-      render(createElement(SessionLogListPage, { campaignId }))
+      render(createElement(SessionLogListPage, { campaignId, sessionId }))
 
       fireEvent.click(screen.getByRole('button', { name: /new entry/i }))
 
@@ -91,7 +94,35 @@ describe('SessionLogListPage', () => {
         .find((entry) => entry.title === 'Session Recap')
       expect(created).toBeDefined()
       expect(created?.campaignId).toBe(campaignId)
+      expect(created?.sessionId).toBe(sessionId)
       expect(created?.kind).toBe('note')
+    } finally {
+      cleanup()
+    }
+  })
+
+  it('hides entries that belong to a different session', () => {
+    appRepository.create('sessionLog', {
+      campaignId,
+      sessionId,
+      kind: 'note',
+      title: 'Inside Session',
+      body: '',
+      timestamp: new Date().toISOString(),
+    })
+    appRepository.create('sessionLog', {
+      campaignId,
+      sessionId: 'session-other',
+      kind: 'note',
+      title: 'Other Session',
+      body: '',
+      timestamp: new Date().toISOString(),
+    })
+
+    try {
+      render(createElement(SessionLogListPage, { campaignId, sessionId }))
+      expect(screen.getByText('Inside Session')).toBeDefined()
+      expect(screen.queryByText('Other Session')).toBeNull()
     } finally {
       cleanup()
     }

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Monitor, ScrollText } from 'lucide-react'
+import { ArrowLeft, Monitor, NotebookPen, ScrollText } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import SessionLogListPage from '@/features/session-log/list-page'
 import DmScreenPage from '@/features/session-workspace/dm-screen-page'
 import { SessionPlannerView } from '@/features/session-workspace/session-planner-view'
 import { useCampaignStorageState } from '@/features/session-workspace/storage'
@@ -24,11 +25,12 @@ interface SessionsState {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-type ViewTab = 'planner' | 'dm-screen'
+type ViewTab = 'planner' | 'dm-screen' | 'log'
 
 const tabs: { id: ViewTab; label: string; icon: LucideIcon }[] = [
   { id: 'planner', label: 'Planner', icon: ScrollText },
   { id: 'dm-screen', label: 'DM Screen', icon: Monitor },
+  { id: 'log', label: 'Log', icon: NotebookPen },
 ]
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -116,6 +118,10 @@ export default function SessionDetailPage({
 
       {activeTab === 'dm-screen' && (
         <DmScreenPage campaignId={campaignId} sessionId={sessionId} />
+      )}
+
+      {activeTab === 'log' && (
+        <SessionLogListPage campaignId={campaignId} sessionId={sessionId} />
       )}
     </div>
   )

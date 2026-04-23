@@ -15,21 +15,27 @@ import {
 
 interface SessionLogListPageProps {
   campaignId: string
+  sessionId: string
 }
 
 const emptyDraft: EntryDraft = { kind: 'note', title: '', body: '' }
 
-export default function SessionLogListPage({ campaignId }: SessionLogListPageProps) {
+export default function SessionLogListPage({
+  campaignId,
+  sessionId,
+}: SessionLogListPageProps) {
   const state = useAppState()
   const [filter, setFilter] = useState<KindFilterValue>('all')
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState<EntryDraft>(emptyDraft)
 
   const entries = useMemo(() => {
-    const scoped = state.sessionLog.filter((entry) => entry.campaignId === campaignId)
+    const scoped = state.sessionLog.filter(
+      (entry) => entry.campaignId === campaignId && entry.sessionId === sessionId,
+    )
     const filtered = filter === 'all' ? scoped : scoped.filter((entry) => entry.kind === filter)
     return [...filtered].sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-  }, [campaignId, filter, state.sessionLog])
+  }, [campaignId, filter, sessionId, state.sessionLog])
 
   function submitNew() {
     const trimmedTitle = draft.title.trim()
@@ -38,6 +44,7 @@ export default function SessionLogListPage({ campaignId }: SessionLogListPagePro
 
     appRepository.create('sessionLog', {
       campaignId,
+      sessionId,
       kind: draft.kind,
       title: trimmedTitle,
       body: trimmedBody,

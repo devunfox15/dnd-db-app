@@ -43,7 +43,7 @@ describe('campaign workspace route shell', () => {
     expect(markup).toContain('Sessions')
     expect(markup).toContain('Player Characters')
     expect(markup).toContain('NPCs')
-    expect(markup).toContain('Session Log')
+    expect(markup).not.toContain('Session Log')
     expect(markup).toContain('overflow-y-auto')
     expect(markup).toContain('shrink-0')
   })
